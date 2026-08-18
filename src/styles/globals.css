@@ -1,0 +1,334 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #050505;
+    --foreground: #ffffff;
+  }
+
+  * {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+    background-color: #050505;
+  }
+
+  body {
+    background-color: #050505;
+    color: #e4e4e7;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: #E0287D;
+    color: #ffffff;
+  }
+}
+
+/* Grow Invicta Official Brand Utilities */
+.text-brand-gradient {
+  background: linear-gradient(135deg, #8B5CF6 0%, #E0287D 38%, #E11D48 72%, #FF6B00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-brand-gradient-h {
+  background: linear-gradient(90deg, #7928CA 0%, #E0287D 40%, #E11D48 70%, #FF6B00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #7928CA 0%, #E0287D 35%, #E11D48 70%, #FF6B00 100%);
+}
+
+.bg-brand-gradient-subtle {
+  background: linear-gradient(135deg, rgba(121, 40, 202, 0.12) 0%, rgba(224, 40, 125, 0.1) 45%, rgba(255, 107, 0, 0.12) 100%);
+}
+
+.border-brand-gradient {
+  border-image: linear-gradient(135deg, #7928CA, #E0287D, #FF6B00) 1;
+}
+
+.badge-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, rgba(121, 40, 202, 0.08) 0%, rgba(224, 40, 125, 0.08) 50%, rgba(255, 107, 0, 0.08) 100%);
+  border: 1px solid rgba(224, 40, 125, 0.25);
+  color: #f4f4f5;
+  border-radius: 2px;
+}
+
+.badge-brand:hover {
+  border-color: rgba(255, 107, 0, 0.4);
+}
+
+/* Minimal Monochrome Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E0287D;
+}
+
+/* Hairline Editorial Utilities */
+.hairline-b {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hairline-t {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hairline-r {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hairline-l {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hairline-all {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Clean Editorial Card with Brand Precision */
+.editorial-card {
+  background-color: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editorial-card:hover {
+  border-color: rgba(224, 40, 125, 0.35);
+  background-color: #111111;
+  box-shadow: 0 4px 24px -6px rgba(121, 40, 202, 0.15);
+}
+
+/* Brand Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.875rem 1.75rem;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  background-color: #fafafa;
+  box-shadow: 0 0 20px rgba(224, 40, 125, 0.35);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.875rem 1.75rem;
+  border-radius: 2px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(224, 40, 125, 0.5);
+  background-color: rgba(224, 40, 125, 0.05);
+}
+
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #7928CA 0%, #E0287D 35%, #E11D48 70%, #FF6B00 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.875rem 1.75rem;
+  border-radius: 2px;
+  transition: opacity 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn-brand:hover {
+  opacity: 0.95;
+  box-shadow: 0 0 24px rgba(224, 40, 125, 0.45);
+}
+
+.btn-brand:active {
+  transform: scale(0.98);
+}
+
+/* Architectural Number Display */
+.display-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+}
+
+/* Subtle Animated Border Flow - Pure CSS, low brightness, quiet brand light */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-flow {
+  0% {
+    --border-angle: 0deg;
+  }
+  100% {
+    --border-angle: 360deg;
+  }
+}
+
+.border-flow-box {
+  position: relative;
+  border-radius: 2px;
+}
+
+.border-flow-box::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(255, 255, 255, 0.08) 0deg,
+    rgba(255, 255, 255, 0.08) 270deg,
+    rgba(121, 40, 202, 0.35) 295deg,
+    rgba(224, 40, 125, 0.55) 325deg,
+    rgba(225, 29, 72, 0.45) 340deg,
+    rgba(255, 107, 0, 0.4) 355deg,
+    rgba(255, 255, 255, 0.08) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: border-flow 12s linear infinite;
+  z-index: 10;
+}
+
+.border-flow-subtle {
+  position: relative;
+  border-radius: 2px;
+}
+
+.border-flow-subtle::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(255, 255, 255, 0.07) 0deg,
+    rgba(255, 255, 255, 0.07) 280deg,
+    rgba(121, 40, 202, 0.3) 305deg,
+    rgba(224, 40, 125, 0.45) 330deg,
+    rgba(255, 107, 0, 0.35) 355deg,
+    rgba(255, 255, 255, 0.07) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: border-flow 14s linear infinite;
+  z-index: 10;
+}
+
+/* Section-Specific Motion Utilities */
+.process-path-line {
+  position: relative;
+}
+
+.process-path-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, #7928CA 0%, #E0287D 35%, #E11D48 70%, #FF6B00 100%);
+  opacity: 0.7;
+}
+
+.line-reveal {
+  position: relative;
+  overflow: hidden;
+}
+
+.editorial-clip-reveal {
+  position: relative;
+  overflow: hidden;
+}
+
+.editorial-clip-reveal img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+}
+
+.editorial-clip-reveal:hover img {
+  transform: scale(1.025);
+}
+
+.manifesto-lead {
+  background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
