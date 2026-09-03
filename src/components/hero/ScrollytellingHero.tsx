@@ -58,12 +58,15 @@ export default function ScrollytellingHero() {
   const [isInitialReady, setIsInitialReady] = useState<boolean>(true);
   const [activePhase, setActivePhase] = useState<number>(0);
 
-  // Draw frame on canvas with aspect ratio cover and seamless background blend
+  // Draw frame on canvas with aspect ratio cover and crisp rendering
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
     const clampedIndex = Math.min(Math.max(Math.round(frameIndex), 0), TOTAL_FRAMES - 1);
     const img = imagesRef.current[clampedIndex] || imagesRef.current[0];
@@ -101,14 +104,14 @@ export default function ScrollytellingHero() {
       const gradient = ctx.createRadialGradient(
         width / 2,
         height / 2,
-        Math.min(width, height) * 0.25,
+        Math.min(width, height) * 0.28,
         width / 2,
         height / 2,
         Math.max(width, height) * 0.65
       );
       gradient.addColorStop(0, "rgba(7, 8, 10, 0)");
-      gradient.addColorStop(0.7, "rgba(7, 8, 10, 0.6)");
-      gradient.addColorStop(1, "rgba(7, 8, 10, 0.95)");
+      gradient.addColorStop(0.75, "rgba(7, 8, 10, 0.45)");
+      gradient.addColorStop(1, "rgba(7, 8, 10, 0.90)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
     }
@@ -193,12 +196,12 @@ export default function ScrollytellingHero() {
     const resizeCanvas = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
