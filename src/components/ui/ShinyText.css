@@ -1,0 +1,21 @@
+.shiny-text {
+  display: inline-block;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
+}
+
+.shiny-text.disabled {
+  background-image: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: inherit !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shiny-text {
+    background-image: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    color: #FFFFFF !important;
+  }
+}

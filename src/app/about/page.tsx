@@ -1,303 +1,393 @@
 import React from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, MapPin, Check, X } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, ShieldCheck, MapPin } from "lucide-react";
+import CapabilityFaqAccordion, { FaqItem } from "@/components/solutions/CapabilityFaqAccordion";
+import PrincipalProfileImage from "@/components/about/PrincipalProfileImage";
+import BorderGlow from "@/components/ui/BorderGlow";
 
-export const metadata = {
-  title: "About Grow Invicta | Built to Eliminate Agency Lock-In",
+export const metadata: Metadata = {
+  title: "About Grow Invicta | Chethan N — Principal Web Practice",
   description:
-    "Founded in Bengaluru, India, Grow Invicta was built to eliminate agency lock-in, inflated hosting markups, and withheld codebases. We serve local and global clients with 100% full asset ownership.",
+    "Learn about Grow Invicta & Chethan N. An independent digital engineering practice building high-speed Next.js web systems & funnels with 100% client ownership.",
+  alternates: {
+    canonical: "https://growinvicta.com/about",
+  },
+  keywords: [
+    "About Grow Invicta",
+    "Chethan N Web Developer",
+    "Independent Digital Engineering Studio",
+    "Principal Web Engineer Bengaluru",
+    "Next.js Specialist India",
+    "Direct Web Engineering Practice",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "Grow Invicta",
+    title: "About Grow Invicta | Chethan N — Principal Web Practice",
+    description:
+      "Learn about Grow Invicta & Chethan N. An independent digital engineering practice building high-speed Next.js web systems & funnels with 100% client ownership.",
+    url: "https://growinvicta.com/about",
+    images: [
+      {
+        url: "https://growinvicta.com/images/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Grow Invicta Digital Engineering Practice & Principal Chethan N",
+      },
+    ],
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Grow Invicta | Chethan N — Principal Web Practice",
+    description:
+      "Learn about Grow Invicta & Chethan N. An independent digital engineering practice building high-speed Next.js web systems & funnels with 100% client ownership.",
+    images: ["https://growinvicta.com/images/og-home.jpg"],
+  },
 };
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://growinvicta.com",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "About",
+      item: "https://growinvicta.com/about",
+    },
+  ],
+};
+
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": "https://growinvicta.com/about#principal",
+  name: "Chethan N",
+  jobTitle: "Founder & Digital Consultant",
+  worksFor: {
+    "@type": "Organization",
+    "@id": "https://growinvicta.com/#organization",
+    name: "Grow Invicta",
+    url: "https://growinvicta.com",
+  },
+  organization: {
+    "@type": "Organization",
+    name: "Grow Invicta",
+    url: "https://growinvicta.com",
+  },
+  url: "https://growinvicta.com/about",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Bengaluru",
+    addressRegion: "Karnataka",
+    addressCountry: "IN",
+  },
+  description:
+    "Lead digital engineer and founder of Grow Invicta, engineering high-performance Next.js web applications, Elementor WordPress platforms, and growth engines with radical transparency.",
+};
+
+const aboutFaqs: FaqItem[] = [
+  {
+    q: "Why work with an independent practice instead of a traditional agency?",
+    a: "When you work with Grow Invicta, you communicate directly with the engineer building your platform—zero account managers, zero outsourced junior handoffs, and zero inflated markups. Every sprint is executed with high velocity, personal accountability, and complete asset transparency.",
+  },
+  {
+    q: "How does Grow Invicta compare to hiring a full-time in-house developer?",
+    a: "Hiring in-house takes months and comes with heavy recurring payroll, benefits, and management overhead. With Grow Invicta, you get senior principal engineering execution immediately on a fixed-scope milestone model with zero long-term liabilities.",
+  },
+  {
+    q: "What is the 10-Day Complete Handover guarantee?",
+    a: "Upon reaching milestone completion, 100% of Git repositories, Super Admin credentials, domain DNS controls, editable Canva master links, and written operational manuals are transferred directly to your team with zero vendor lock-in.",
+  },
+  {
+    q: "Where is the practice based and who do you work with?",
+    a: "The practice operates from Bengaluru, Karnataka, India, engineering custom web applications, high-converting platforms, and growth engines for startups, healthcare clinics, and modern businesses globally.",
+  },
+];
+
+const faqPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: aboutFaqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
+};
+
+const commitments = [
+  {
+    number: "01",
+    title: "Direct Principal Execution",
+    description:
+      "No middlemen or junior handoffs. You collaborate directly with me on strategy, architecture, and deployment.",
+  },
+  {
+    number: "02",
+    title: "3–7 Day Express Staging",
+    description:
+      "Fast-track milestone velocity. You review interactive, working software in days rather than waiting months for wireframe approvals.",
+  },
+  {
+    number: "03",
+    title: "Dedicated Website Care & Direct Hosting",
+    description:
+      "Continuous website maintenance, security, and daily backups included in our subscription model, while hosting is set up directly on your own account.",
+  },
+  {
+    number: "04",
+    title: "100% Asset Handover & Written SOPs",
+    description:
+      "Zero vendor lock-in. Complete Git repositories, super-admin logins, and step-by-step written administration manuals are handed over to you on Day 10.",
+  },
+];
+
+const engineeringArsenal = [
+  {
+    category: "FRONTEND & WEB APPS",
+    description: "Next.js (App Router), React, Tailwind CSS, TypeScript, Serverless APIs.",
+  },
+  {
+    category: "CONTENT MANAGEMENT",
+    description: "WordPress strictly built with Elementor for intuitive visual drag-and-drop management.",
+  },
+  {
+    category: "COMMERCE SYSTEMS",
+    description: "Custom Shopify themes, 1-Click checkout optimizations, multi-currency routing.",
+  },
+  {
+    category: "DESIGN & MEDIA PRODUCTION",
+    description: "Editable Canva master link systems, CapCut post-production, print-ready CMYK collateral.",
+  },
+  {
+    category: "SEARCH & DISCOVERY",
+    description: "Generative Engine Optimization (GEO), llms.txt manifests, deep JSON-LD semantic schema networks.",
+  },
+];
 
 export default function AboutPage() {
   return (
-    <div className="pt-32 pb-24 sm:pb-32 bg-[#050505] text-white">
+    <div className="pt-28 sm:pt-32 lg:pt-36 pb-20 sm:pb-24 lg:pb-28 bg-[var(--page-bg)] text-[var(--text-primary)]">
+      {/* Structured Data Scripts */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section 01: Manifesto Header */}
-        <div className="max-w-4xl mb-20 sm:mb-28 gsap-reveal-header">
-          <div className="badge-brand mb-4">
-            <span>Manifesto &amp; Philosophy</span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.06]">
-            Built to eliminate <br />
-            <span className="text-brand-gradient">agency lock-in.</span>
-          </h1>
-          <p className="mt-8 text-base sm:text-xl text-zinc-300 leading-relaxed font-normal max-w-3xl">
-            Grow Invicta was founded in Bengaluru, India around a simple principle:{" "}
-            <strong className="text-white font-semibold">Clients should own what they pay for.</strong>{" "}
-            We eliminated the deceptive agency models that trap businesses into recurring developer fees, locked infrastructure, and withheld source assets.
-          </p>
-        </div>
-
-        {/* Section 02: Core Philosophy Editorial Statement */}
-        <div className="mb-24 sm:mb-32 p-8 sm:p-14 border border-white/[0.1] bg-[#090909] border-flow-box gsap-reveal-card">
-          <div className="max-w-3xl mb-12">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-brand-gradient font-bold block mb-2">
-              01 / Core Philosophy
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-              You should own what you pay for.
-            </h2>
-            <p className="mt-4 text-sm sm:text-base text-zinc-400 leading-relaxed">
-              We believe that true engineering and design partnerships build client independence, not perpetual dependency. Every Grow Invicta sprint is architected so that your internal team retains unrestricted autonomy over every layer of your digital presence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-6 border-t border-white/[0.08] gsap-stagger-container">
-            {[
-              { label: "Your Website", desc: "Production build" },
-              { label: "Your Source Code", desc: "Full Git repository" },
-              { label: "Your Design Assets", desc: "Editable Canva & vector" },
-              { label: "Your Infrastructure", desc: "Direct billing control" },
-              { label: "Your Accounts", desc: "Root & Super Admin" },
-              { label: "Your Documentation", desc: "Written step-by-step SOPs" },
-            ].map((item, idx) => (
-              <div key={idx} className="p-4 bg-white/[0.02] border border-white/[0.08] gsap-stagger-item">
-                <div className="text-[11px] font-mono text-zinc-500 mb-1">0{idx + 1}</div>
-                <div className="text-xs sm:text-sm font-bold text-white mb-1">{item.label}</div>
-                <div className="text-[11px] text-zinc-400 font-mono">{item.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 03: The Problem We Eliminate vs What You Receive */}
-        <div className="mb-24 sm:mb-32">
-          <div className="max-w-3xl mb-12 gsap-reveal-header">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-              02 / Industry Comparison
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
-              Deceptive agency traps vs. The Grow Invicta standard.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 border border-white/[0.1] gsap-reveal-card">
-            {/* The Problems We Eliminate */}
-            <div className="p-8 sm:p-12 border-b lg:border-b-0 lg:border-r border-white/[0.1] bg-[#070707]">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-3">
-                Problems We Eliminate
-              </span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">
-                What clients shouldn&apos;t endure:
-              </h3>
-              <ul className="space-y-4 text-xs sm:text-sm text-zinc-400 font-mono">
-                {[
-                  "Agency lock-in trapping clients in perpetual dependencies",
-                  "Inflated 300% markups on third-party hosting and domains",
-                  "Unclear ownership and withheld source repositories",
-                  "Hidden dependencies requiring paid agency support tickets",
-                  "Missing documentation leaving internal teams helpless",
-                  "Prolonged 3 to 6-month delivery timelines for basic sites",
-                  "Unnecessary technical barriers and proprietary black boxes"
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <X className="w-4 h-4 text-red-500/80 shrink-0 mt-0.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* What Every Client Receives */}
-            <div className="p-8 sm:p-12 bg-[#090909]">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-brand-gradient font-bold block mb-3">
-                The Grow Invicta Standard
-              </span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-6">
-                What every client receives:
-              </h3>
-              <ul className="space-y-4 text-xs sm:text-sm text-zinc-300 font-mono">
-                {[
-                  "100% full client ownership of Git codebases, assets & Canva links",
-                  "$0 agency markup — client pays hosting & domain providers directly",
-                  "Express staging ready in approximately 3–7 business days",
-                  "Target completion around Day 10 with Super Admin credentials",
-                  "Comprehensive written step-by-step administration guides & SOPs",
-                  "Realistic 60–90 day organic Google SEO & AI search (GEO) roadmaps",
-                  "Transparent 50/50 payment milestone structure with zero recurring traps"
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 04: The Four Core Pillars */}
-        <div className="mb-24 sm:mb-32">
-          <div className="max-w-3xl mb-12 gsap-reveal-header">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-              03 / Pillars
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
-              The Four Core Operational Pillars
-            </h2>
-            <p className="mt-3 text-sm text-zinc-400">
-              The foundational commitments that govern every project we deliver.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 border-t border-l border-white/[0.1] gsap-stagger-container">
-            {[
-              {
-                number: "01",
-                title: "100% Client Ownership",
-                subtitle: "Zero Vendor Lock-In",
-                desc: "We believe you should own what you pay for. From source code and private Git repositories to Canva marketing templates and cloud hosting accounts, everything is legally transferred directly to your organization."
-              },
-              {
-                number: "02",
-                title: "$0 Infrastructure Markup",
-                subtitle: "Direct Provider Billing",
-                desc: "We never mark up hosting, domains, or third-party infrastructure fees. Clients pay infrastructure providers directly (Vercel, AWS, Cloudways, Hostinger) where applicable, maintaining 100% billing control."
-              },
-              {
-                number: "03",
-                title: "Realistic Growth Timelines",
-                subtitle: "No Fabricated Promises",
-                desc: "We do not sell 'rank #1 on Google overnight' myths. We provide transparent, verified 60–90 day indexing roadmaps, Generative Engine Optimization (GEO) semantic entity mapping, and compounding organic authority."
-              },
-              {
-                number: "04",
-                title: "Comprehensive Written Documentation",
-                subtitle: "Clear Administration Guides & SOPs",
-                desc: "Every project includes exhaustive, written step-by-step administration manuals. Your non-technical team receives the precise knowledge needed to update text, swap imagery, publish articles, and operate autonomously."
-              }
-            ].map((pillar) => (
-              <div
-                key={pillar.number}
-                className="border-r border-b border-white/[0.1] p-8 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors gsap-stagger-item"
-              >
-                <div>
-                  <div className="font-mono text-3xl sm:text-4xl font-bold text-zinc-600 mb-6 tracking-tighter">
-                    {pillar.number}
-                  </div>
-                  <div className="text-[11px] font-mono uppercase tracking-wider text-brand-gradient font-bold mb-2">
-                    {pillar.subtitle}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight leading-snug">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-sans">
-                    {pillar.desc}
-                  </p>
-                </div>
-
-                <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-zinc-500">
-                  <span>Grow Invicta Standard</span>
-                  <span className="text-white">&bull;</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 05: How We Work (Milestone Model) */}
-        <div className="mb-24 sm:mb-32">
-          <div className="max-w-3xl mb-12 gsap-reveal-header">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-              04 / Execution Framework
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white leading-tight">
-              Structured Sprint Methodology
-            </h2>
-            <p className="mt-3 text-sm text-zinc-400">
-              A transparent 4-stage sprint model designed to eliminate protracted agency delays.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/[0.1] border-flow-box gsap-stagger-container gsap-path-line">
-            {[
-              {
-                step: "01",
-                title: "Discovery",
-                duration: "Day 1–2",
-                desc: "Deep-dive into your business goals, target audience, technical scope, and design preferences. Scope locked with zero ambiguity.",
-                deliverable: "Scope & Architecture Plan"
-              },
-              {
-                step: "02",
-                title: "Staging",
-                duration: "Day 3–7",
-                desc: "Rapid engineering sprint delivering your first working, interactive staging environment for review, depending on scope and client readiness.",
-                deliverable: "Working Staging Environment"
-              },
-              {
-                step: "03",
-                title: "Review & QA",
-                duration: "Day 7–9",
-                desc: "Iterative refinements, Core Web Vitals audits, multi-device responsiveness testing, form validation, and cross-browser quality assurance.",
-                deliverable: "Production Release Candidate"
-              },
-              {
-                step: "04",
-                title: "Complete Handover",
-                duration: "Target: Day 10",
-                desc: "Target completion around Day 10 (subject to scope and dependencies). 100% transfer of source code, Super Admin credentials, written guides, and launch.",
-                deliverable: "Full Ownership & Live Launch"
-              }
-            ].map((st) => (
-              <div
-                key={st.step}
-                className="border-r border-b border-white/[0.1] p-8 flex flex-col justify-between bg-[#080808]"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.08]">
-                    <span className="font-mono text-2xl font-bold text-white tracking-tighter">
-                      {st.step}
-                    </span>
-                    <span className="text-xs font-mono px-2 py-0.5 border border-white/[0.1] text-zinc-400">
-                      {st.duration}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-white mb-2 tracking-tight">
-                    {st.title}
-                  </h3>
-
-                  <p className="text-xs text-zinc-400 leading-relaxed mb-6 font-sans">
-                    {st.desc}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-white/[0.08]">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-zinc-500 block mb-1">
-                    Milestone Output
-                  </span>
-                  <div className="text-xs font-mono text-zinc-200 font-semibold">
-                    {st.deliverable}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 06: Location & Global Delivery */}
-        <div className="p-8 sm:p-14 border border-white/[0.1] bg-[#080808] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 gsap-reveal-card">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs font-mono uppercase mb-3">
-              <MapPin className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Bengaluru, Karnataka, India</span>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight">
-              Headquartered in Bengaluru. Serving local and global clients.
-            </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-sans">
-              We collaborate with founders, growing enterprises, clinics, and marketing teams locally in India and internationally across North America, Europe, and Asia.
-            </p>
-          </div>
+        {/* Breadcrumb */}
+        <div className="mb-10">
           <Link
-            href="/contact"
-            className="btn-primary shrink-0 w-full sm:w-auto"
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
-            <span>Book a Free 30-Min Call</span>
-            <ArrowUpRight className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Home</span>
           </Link>
         </div>
+
+        {/* Hero / Identity Section */}
+        <section className="mb-20 sm:mb-24 lg:mb-28 gsap-reveal-header">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-[var(--border-subtle)] border border-[var(--border)] text-[11px] font-mono uppercase tracking-widest text-[var(--text-secondary)] mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
+                <span>ABOUT GROW INVICTA &amp; CHETHAN N</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--text-primary)] leading-[1.1] mb-6">
+                Direct web engineering. Zero agency middlemen.
+              </h1>
+
+              <div className="space-y-4 text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed font-normal">
+                <p>
+                  I&apos;m Chethan N, an independent digital engineer and the founder of Grow Invicta based in Bengaluru, India. I design, build, and deploy production digital web architectures for founders, businesses, healthcare networks, and marketing teams worldwide.
+                </p>
+                <p>
+                  I created Grow Invicta to eliminate the traditional agency model of junior handoffs, bloated communication chains, slow delivery cycles, and artificial infrastructure lock-in. When you work with Grow Invicta, you collaborate directly with me.
+                </p>
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/contact"
+                  className="btn-primary"
+                >
+                  <span>Book a 30-Min Call</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/portfolio"
+                  className="btn-secondary"
+                >
+                  View Portfolio
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 flex justify-center lg:justify-end">
+              <PrincipalProfileImage />
+            </div>
+          </div>
+        </section>
+
+        {/* The Philosophy */}
+        <section className="mb-20 sm:mb-24 lg:mb-28">
+          <BorderGlow
+            className="p-8 sm:p-12 lg:p-16 gsap-reveal-card"
+            borderRadius={2}
+            glowRadius={36}
+            glowIntensity={1.1}
+            colors={["#7C3AED", "#FF6A00"]}
+            
+          >
+            <div className="max-w-3xl mb-10">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-2">
+                THE PHILOSOPHY
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">
+                You should own what you pay for.
+              </h2>
+            </div>
+
+            <div className="space-y-6 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-3xl font-normal">
+              <p className="p-6 border-l-2 border-[var(--border-hover)] neo-card-inset">
+                For years, the standard agency playbook has relied on creating artificial technical dependency: hoarding root server credentials, marking up cloud hosting fees by 300%, locking client code in closed accounts, and padding timelines through layers of non-technical account managers.
+              </p>
+
+              <p className="p-6 border-l-2 border-[#7C3AED]/60 neo-card-inset">
+                I built Grow Invicta as an independent digital engineering practice designed on radical transparency and high execution speed. I build fast Next.js architectures, clean Elementor WordPress platforms, conversion-engineered Shopify stores, and scalable full-stack applications directly with you. Every line of code, every API integration, and every design asset is engineered to give your business total autonomy.
+              </p>
+
+              <p className="p-6 border-l-2 border-[var(--border-hover)] neo-card-inset">
+                There are no account managers relaying messages or junior teams learning on your budget. You get direct access to the builder on every call and sprint milestone—ensuring your technical architecture, design fidelity, and business goals are executed flawlessly from discovery to launch.
+              </p>
+            </div>
+          </BorderGlow>
+        </section>
+
+        {/* Four Core Commitments */}
+        <section className="mb-20 sm:mb-24 lg:mb-28">
+          <div className="max-w-3xl mb-12 gsap-reveal-header">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-2">
+              OPERATING PRINCIPLES
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+              How We Work Together: 4 Core Commitments
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gsap-stagger-container">
+            {commitments.map((item, idx) => (
+              <BorderGlow
+                key={idx}
+                className="p-8 sm:p-9 flex flex-col justify-between group gsap-stagger-item"
+                borderRadius={2}
+                glowRadius={28}
+                glowIntensity={1.0}
+                colors={["#7C3AED", "#FF6A00"]}
+                
+              >
+                <div>
+                  <div className="text-2xl sm:text-3xl font-mono font-bold text-[var(--text-muted)] mb-5">
+                    {item.number}
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </BorderGlow>
+            ))}
+          </div>
+        </section>
+
+        {/* Engineering Arsenal */}
+        <section className="mb-20 sm:mb-24 lg:mb-28">
+          <div className="max-w-3xl mb-12 gsap-reveal-header">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-2">
+              ENGINEERING ARSENAL
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+              Modern tools chosen for speed, reliability &amp; control.
+            </h2>
+          </div>
+
+          <BorderGlow
+            className="divide-y divide-[var(--border)] gsap-reveal-card"
+            borderRadius={2}
+            glowRadius={30}
+            glowIntensity={1.0}
+            colors={["#7C3AED", "#FF6A00"]}
+            
+          >
+            {engineeringArsenal.map((tool, idx) => (
+              <div
+                key={idx}
+                className="p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[var(--border-subtle)] transition-colors"
+              >
+                <div className="flex items-center gap-4 md:w-1/3">
+                  <h3 className="text-sm sm:text-base font-mono font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                    {tool.category}
+                  </h3>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] md:w-2/3 leading-relaxed">
+                  {tool.description}
+                </p>
+              </div>
+            ))}
+          </BorderGlow>
+        </section>
+
+        {/* Practice FAQs */}
+        <section className="mb-14 sm:mb-16">
+          <div className="max-w-3xl mb-10 gsap-reveal-header">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-2">
+              CLARIFICATIONS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
+          <div className="gsap-reveal-card">
+            <CapabilityFaqAccordion faqs={aboutFaqs} />
+          </div>
+
+          <div className="mt-8 flex items-center justify-between pt-4 border-t border-[var(--border-subtle)]">
+            <span className="text-xs text-[var(--text-muted)] font-mono">
+              Have questions on our specific service packages?
+            </span>
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <span>View all FAQs</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

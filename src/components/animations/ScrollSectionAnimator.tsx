@@ -19,15 +19,94 @@ export default function ScrollSectionAnimator() {
       const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (prefersReduced) return;
 
+      const isMobile = window.innerWidth < 768;
+
+      // Subtle, cinematic depth values adhering to interaction guidelines
+      const enterScale = isMobile ? 0.99 : 0.985;
+      const enterOpacity = isMobile ? 0.90 : 0.85;
+      const enterY = isMobile ? 12 : 20;
+
+      const exitScale = isMobile ? 0.98 : 0.96;
+      const exitOpacity = isMobile ? 0.90 : 0.85;
+      const exitY = isMobile ? -12 : -20;
+
       // Small delay to ensure all DOM nodes for the route are fully mounted
       const timer = setTimeout(() => {
         ctx = gsap.context(() => {
-          // 1. Editorial Section Headers
+          // =========================================================================
+          // 1. UNIFIED SCROLL-LINKED SECTION DEPTH TRANSITIONS (Non-Hero Only)
+          // =========================================================================
+          const spatialSections = document.querySelectorAll(".spatial-section");
+
+          spatialSections.forEach((section) => {
+            const el = section as HTMLElement;
+            const vh = window.innerHeight || 800;
+            const h = el.offsetHeight || 600;
+            const totalDistance = h + vh;
+
+            // Dynamic progress ratios based on section height:
+            // Entrance completes as section top settles into upper viewport (~20% from top)
+            // Exit begins as section bottom approaches upper viewport (~20% from top)
+            const enterRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+            const exitRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+            const plateauRatio = Math.max(0.01, 1 - enterRatio - exitRatio);
+
+            // Single unified timeline per section (avoids property overwrite conflicts)
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: el,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+              },
+            });
+
+            // Stage 1: Entrance — Section gracefully emerges and rises into position
+            tl.fromTo(
+              el,
+              {
+                scale: enterScale,
+                opacity: enterOpacity,
+                y: enterY,
+                transformOrigin: "50% 25%",
+              },
+              {
+                scale: 1,
+                opacity: 1,
+                y: 0,
+                ease: "power1.out",
+                duration: enterRatio,
+              }
+            );
+
+            // Stage 2: Active Focus Plateau — Full scale, full opacity, rock solid in view
+            tl.to(el, {
+              scale: 1,
+              opacity: 1,
+              y: 0,
+              ease: "none",
+              duration: plateauRatio,
+            });
+
+            // Stage 3: Exit — Section gently recedes, scaling down and moving slightly up
+            tl.to(el, {
+              scale: exitScale,
+              opacity: exitOpacity,
+              y: exitY,
+              ease: "power1.in",
+              duration: exitRatio,
+            });
+          });
+
+          // =========================================================================
+          // 2. EDITORIAL HEADERS REVEAL
+          // =========================================================================
           const sectionHeaders = document.querySelectorAll(".gsap-reveal-header");
           sectionHeaders.forEach((header) => {
             gsap.fromTo(
               header,
-              { opacity: 0, y: 32 },
+              { opacity: 0, y: 24 },
               {
                 opacity: 1,
                 y: 0,
@@ -42,23 +121,25 @@ export default function ScrollSectionAnimator() {
             );
           });
 
-          // 2. Staggered Grid & List Items (Capabilities, Metrics, SOPs, FAQs)
+          // =========================================================================
+          // 3. STAGGERED GRID & LIST ITEMS (Guarantees, SOPs, FAQs, Testimonials)
+          // =========================================================================
           const staggerContainers = document.querySelectorAll(".gsap-stagger-container");
           staggerContainers.forEach((container) => {
             const items = container.querySelectorAll(".gsap-stagger-item");
             if (items.length > 0) {
               gsap.fromTo(
                 items,
-                { opacity: 0, y: 24 },
+                { opacity: 0, y: 20 },
                 {
                   opacity: 1,
                   y: 0,
                   duration: 0.75,
-                  stagger: 0.09,
+                  stagger: 0.08,
                   ease: "power3.out",
                   scrollTrigger: {
                     trigger: container,
-                    start: "top 85%",
+                    start: "top 86%",
                     toggleActions: "play none none reverse",
                   },
                 }
@@ -66,7 +147,9 @@ export default function ScrollSectionAnimator() {
             }
           });
 
-          // 3. Progressive Architectural Path Lines & Hairline Dividers
+          // =========================================================================
+          // 4. PROGRESSIVE ARCHITECTURAL PATH LINES
+          // =========================================================================
           const pathLines = document.querySelectorAll(".gsap-path-line, .gsap-line-draw");
           pathLines.forEach((line) => {
             gsap.fromTo(
@@ -85,12 +168,14 @@ export default function ScrollSectionAnimator() {
             );
           });
 
-          // 4. Large Exhibition, Comparison, and Documentation Cards
+          // =========================================================================
+          // 5. LARGE EXHIBITION, COMPARISON, & DOCUMENTATION CARDS
+          // =========================================================================
           const cards = document.querySelectorAll(".gsap-reveal-card, .gsap-doc-reveal");
           cards.forEach((card) => {
             gsap.fromTo(
               card,
-              { opacity: 0, y: 36 },
+              { opacity: 0, y: 28 },
               {
                 opacity: 1,
                 y: 0,
@@ -105,32 +190,14 @@ export default function ScrollSectionAnimator() {
             );
           });
 
-          // 5. Image & Media Clip Expansion
-          const imageCards = document.querySelectorAll(".gsap-image-reveal");
-          imageCards.forEach((img) => {
-            gsap.fromTo(
-              img,
-              { opacity: 0, scale: 0.97 },
-              {
-                opacity: 1,
-                scale: 1,
-                duration: 0.9,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: img,
-                  start: "top 86%",
-                  toggleActions: "play none none reverse",
-                },
-              }
-            );
-          });
-
-          // 6. Large Footer Background Wordmark Reveal
+          // =========================================================================
+          // 6. FOOTER GROUNDED REVEAL
+          // =========================================================================
           const footerWordmark = document.querySelector(".gsap-footer-wordmark");
           if (footerWordmark) {
             gsap.fromTo(
               footerWordmark,
-              { opacity: 0, y: 24 },
+              { opacity: 0, y: 20 },
               {
                 opacity: 1,
                 y: 0,
@@ -148,7 +215,7 @@ export default function ScrollSectionAnimator() {
           // Refresh ScrollTrigger to ensure accurate trigger coordinates
           ScrollTrigger.refresh();
         });
-      }, 80);
+      }, 100);
 
       return () => clearTimeout(timer);
     }).catch((err) => {

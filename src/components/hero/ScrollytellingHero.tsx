@@ -2,36 +2,49 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import CinematicChromeTitle from "./CinematicChromeTitle";
 
-const TOTAL_FRAMES = 240;
+const TOTAL_FRAMES = 300;
 
 function getFramePath(index: number): string {
   const padded = String(index).padStart(3, "0");
   return `/hero-frames/ezgif-frame-${padded}.jpg`;
 }
 
-const WORDMARK_LETTERS = [
-  { char: "G", space: false },
-  { char: "R", space: false },
-  { char: "O", space: false },
-  { char: "W", space: true },
-  { char: "I", space: false },
-  { char: "N", space: false },
-  { char: "V", space: false },
-  { char: "I", space: false },
-  { char: "C", space: false },
-  { char: "T", space: false },
-  { char: "A", space: false },
+const SERVICES = [
+  { name: "WEBSITE DESIGN" },
+  { name: "SEO & AI SEARCH OPTIMIZATION" },
+  { name: "BUSINESS GROWTH & SOCIAL MEDIA" },
+  { name: "VIDEO EDITING" },
+  { name: "CREATIVE & BRANDING" },
 ];
 
-const SERVICES = [
-  { num: "01", name: "WEBSITE DESIGN" },
-  { num: "02", name: "SEO & AI SEARCH OPTIMIZATION" },
-  { num: "03", name: "BUSINESS GROWTH & SOCIAL MEDIA" },
-  { num: "04", name: "VIDEO EDITING" },
-  { num: "05", name: "CREATIVE & BRANDING" },
-];
+// Persistent Scroll to Explore Indicator Overlay
+function ScrollToExplore({
+  className = "absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2",
+  innerRef,
+}: {
+  className?: string;
+  innerRef?: React.Ref<HTMLDivElement>;
+}) {
+  return (
+    <div
+      ref={innerRef}
+      className={`flex flex-col items-center gap-2 z-30 pointer-events-auto select-none ${className}`}
+    >
+      <div className="flex flex-col items-center gap-1.5 group cursor-pointer">
+        <span className="text-[10px] font-mono tracking-[0.25em] text-[var(--text-secondary)] uppercase font-semibold">
+          SCROLL
+        </span>
+        <span className="text-[9px] font-mono tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-gi-purple via-gi-magenta to-gi-orange uppercase font-bold">
+          TO EXPLORE
+        </span>
+        <div className="w-[1px] h-7 bg-gradient-to-b from-gi-magenta via-gi-orange to-transparent animate-pulse" />
+      </div>
+    </div>
+  );
+}
 
 export default function ScrollytellingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,12 +52,8 @@ export default function ScrollytellingHero() {
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const frameObjRef = useRef<{ frame: number }>({ frame: 0 });
 
-  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const lightRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const eyebrowRef = useRef<HTMLDivElement | null>(null);
   const capabilityRefs = useRef<(HTMLElement | null)[]>([]);
   const scrollCueRef = useRef<HTMLDivElement | null>(null);
-  const wordmarkTimelineRef = useRef<any>(null);
 
   const [isInitialReady, setIsInitialReady] = useState<boolean>(true);
   const [activePhase, setActivePhase] = useState<number>(0);
@@ -62,7 +71,7 @@ export default function ScrollytellingHero() {
     const height = canvas.height;
 
     // Clear background to pure near-black
-    ctx.fillStyle = "#050505";
+    ctx.fillStyle = "#07080A";
     ctx.fillRect(0, 0, width, height);
 
     if (img && img.complete && img.naturalWidth > 0) {
@@ -77,16 +86,18 @@ export default function ScrollytellingHero() {
       if (canvasRatio > imgRatio) {
         drawWidth = width;
         drawHeight = width / imgRatio;
+        offsetX = 0;
         offsetY = (height - drawHeight) / 2;
       } else {
         drawHeight = height;
         drawWidth = height * imgRatio;
-        offsetY = (width - drawWidth) / 2;
+        offsetX = (width - drawWidth) / 2;
+        offsetY = 0;
       }
 
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-      // Vignette overlay for seamless edge blending into #050505
+      // Vignette overlay for seamless edge blending into #07080A
       const gradient = ctx.createRadialGradient(
         width / 2,
         height / 2,
@@ -95,9 +106,9 @@ export default function ScrollytellingHero() {
         height / 2,
         Math.max(width, height) * 0.65
       );
-      gradient.addColorStop(0, "rgba(5, 5, 5, 0)");
-      gradient.addColorStop(0.7, "rgba(5, 5, 5, 0.6)");
-      gradient.addColorStop(1, "rgba(5, 5, 5, 0.95)");
+      gradient.addColorStop(0, "rgba(7, 8, 10, 0)");
+      gradient.addColorStop(0.7, "rgba(7, 8, 10, 0.6)");
+      gradient.addColorStop(1, "rgba(7, 8, 10, 0.95)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
     }
@@ -138,65 +149,6 @@ export default function ScrollytellingHero() {
     };
   }, [drawFrame]);
 
-  // Setup GSAP Sequential Wordmark Letter Animation (G -> R -> O -> W -> I -> N -> V -> I -> C -> T -> A)
-  const triggerWordmarkAnimation = useCallback(() => {
-    import("gsap").then(({ gsap }) => {
-      if (wordmarkTimelineRef.current) {
-        wordmarkTimelineRef.current.kill();
-      }
-
-      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReduced) return;
-
-      const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-      wordmarkTimelineRef.current = tl;
-
-      // Sequential light sweep across each letter
-      lightRefs.current.forEach((lightEl, i) => {
-        if (!lightEl) return;
-        const letterEl = letterRefs.current[i];
-        const offset = i * 0.16;
-
-        tl.to(
-          lightEl,
-          {
-            opacity: 1,
-            scale: 1.05,
-            duration: 0.2,
-            ease: "power2.out",
-          },
-          offset
-        )
-        .to(
-          letterEl,
-          {
-            filter: "drop-shadow(0 0 10px rgba(255,255,255,0.85)) drop-shadow(0 0 20px rgba(224,40,125,0.4))",
-            duration: 0.2,
-          },
-          offset
-        )
-        .to(
-          lightEl,
-          {
-            opacity: 0,
-            scale: 1,
-            duration: 0.22,
-            ease: "power2.in",
-          },
-          offset + 0.18
-        )
-        .to(
-          letterEl,
-          {
-            filter: "none",
-            duration: 0.22,
-          },
-          offset + 0.18
-        );
-      });
-    });
-  }, []);
-
   // Initial Entrance Animation on Page Load
   useEffect(() => {
     import("gsap").then(({ gsap }) => {
@@ -204,33 +156,6 @@ export default function ScrollytellingHero() {
       if (prefersReduced) return;
 
       const masterTl = gsap.timeline();
-
-      // 1. Clean emerging entrance of wordmark from darkness
-      const validLetterEls = letterRefs.current.filter(Boolean);
-      if (validLetterEls.length > 0) {
-        masterTl.fromTo(
-          validLetterEls,
-          { opacity: 0, filter: "blur(10px)", y: 12 },
-          {
-            opacity: 1,
-            filter: "blur(0px)",
-            y: 0,
-            duration: 0.8,
-            stagger: 0.03,
-            ease: "power3.out",
-          }
-        );
-      }
-
-      // 2. Animate Eyebrow & Capabilities on Website Open
-      if (eyebrowRef.current) {
-        masterTl.fromTo(
-          eyebrowRef.current,
-          { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-          "-=0.3"
-        );
-      }
 
       const validCapEls = capabilityRefs.current.filter(Boolean);
       if (validCapEls.length > 0) {
@@ -244,11 +169,11 @@ export default function ScrollytellingHero() {
             stagger: 0.07,
             ease: "power2.out",
           },
-          "-=0.3"
+          "+=0.1"
         );
       }
 
-      // 3. Reveal Scroll to Explore Indicator
+      // Reveal Scroll to Explore Indicator
       if (scrollCueRef.current) {
         masterTl.fromTo(
           scrollCueRef.current,
@@ -257,11 +182,8 @@ export default function ScrollytellingHero() {
           "-=0.2"
         );
       }
-
-      // 4. Trigger sequential edge-light sweep
-      triggerWordmarkAnimation();
     });
-  }, [triggerWordmarkAnimation]);
+  }, []);
 
   // Setup GSAP ScrollTrigger safely via dynamic import
   useEffect(() => {
@@ -338,7 +260,7 @@ export default function ScrollytellingHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full min-h-[350vh] sm:min-h-[400vh] bg-[#050505]"
+      className="relative z-20 w-full min-h-[350vh] sm:min-h-[400vh] bg-[#07080A]"
     >
       {/* Sticky Viewport Container */}
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center pointer-events-none">
@@ -350,8 +272,8 @@ export default function ScrollytellingHero() {
         />
 
         {/* Ambient Vignettes */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/80 z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/70 via-transparent to-[#050505]/70 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07080A] via-transparent to-[#07080A]/80 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#07080A]/70 via-transparent to-[#07080A]/70 z-10 pointer-events-none" />
 
         {/* ========================================================================= */}
         {/* ACT 01: BRAND REVEAL & FIVE CAPABILITIES (Screen 1 / Phase 0)             */}
@@ -363,89 +285,26 @@ export default function ScrollytellingHero() {
               : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
           }`}
         >
-          {/* Sequential Edge-Light Tracing Wordmark (G -> R -> O -> W -> I -> N -> V -> I -> C -> T -> A) */}
-          <div
-            onMouseEnter={triggerWordmarkAnimation}
-            className="select-none cursor-default py-2 inline-flex items-center justify-center flex-wrap"
-          >
-            <h1 className="sr-only">GROW INVICTA</h1>
-            <div className="flex items-center justify-center flex-wrap" aria-hidden="true">
-              {WORDMARK_LETTERS.map((item, index) => (
-                <span
-                  key={index}
-                  ref={(el) => { letterRefs.current[index] = el; }}
-                  className={`relative inline-block text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] font-black uppercase leading-[0.9] ${
-                    item.space ? "mr-4 sm:mr-8" : "mr-0.5 sm:mr-1"
-                  }`}
-                  style={{
-                    letterSpacing: "-0.03em",
-                  }}
-                >
-                  {/* Clean Silver-White Fill */}
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400 block transition-all duration-200">
-                    {item.char}
-                  </span>
-
-                  {/* Travelling Sequential Edge-Light Border Contour */}
-                  <span
-                    ref={(el) => { lightRefs.current[index] = el; }}
-                    className="absolute inset-[-2px] z-20 pointer-events-none rounded-[2px] opacity-0"
-                    style={{
-                      border: "1.5px solid rgba(255, 255, 255, 0.9)",
-                      boxShadow: "0 0 12px rgba(255, 255, 255, 0.85), inset 0 0 8px rgba(224, 40, 125, 0.4)",
-                    }}
-                  />
-                </span>
-              ))}
-            </div>
+          {/* Cinematic 3D Metallic Silver/Chrome Wordmark */}
+          <div className="w-full max-w-4xl sm:max-w-5xl mx-auto py-2 flex items-center justify-center">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold font-poppins tracking-tight uppercase select-none leading-none">
+              <CinematicChromeTitle text="GROW INVICTA" />
+            </h1>
           </div>
 
-          {/* Capability Eyebrow */}
-          <div
-            ref={eyebrowRef}
-            className="mt-8 mb-4 flex items-center justify-center gap-3"
-          >
-            <div className="w-6 sm:w-8 h-[1px] bg-gradient-to-r from-transparent to-zinc-700" />
-            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-400 font-medium">
-              We build &amp; grow digital presences through
-            </span>
-            <div className="w-6 sm:w-8 h-[1px] bg-gradient-to-l from-transparent to-zinc-700" />
-          </div>
-
-          {/* Five Capability Items (No Links, No Clicks — Subtle Zoom & Highlight on Hover) */}
-          <div className="flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-7 gap-y-2.5 max-w-5xl select-none">
+          {/* Five Capability Items */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-7 gap-y-2.5 max-w-5xl select-none">
             {SERVICES.map((srv, idx) => (
               <div
                 key={srv.name}
                 ref={(el) => { capabilityRefs.current[idx] = el; }}
                 className="group inline-block cursor-default py-1 transition-all duration-300 ease-out hover:scale-105"
               >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-zinc-500 group-hover:text-white font-mono text-[10px] transition-colors duration-200">
-                    {srv.num}
-                  </span>
-                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-zinc-300 group-hover:text-white group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] transition-all duration-200">
-                    {srv.name}
-                  </span>
-                </div>
+                <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] transition-all duration-200">
+                  {srv.name}
+                </span>
               </div>
             ))}
-          </div>
-
-          {/* Elevated SCROLL TO EXPLORE Indicator (Comfortably Visible in Lower-Third) */}
-          <div
-            ref={scrollCueRef}
-            className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-          >
-            <div className="flex flex-col items-center gap-1.5 group cursor-pointer">
-              <span className="text-[10px] font-mono tracking-[0.25em] text-zinc-400 uppercase font-semibold">
-                SCROLL
-              </span>
-              <span className="text-[9px] font-mono tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-gi-purple via-gi-magenta to-gi-orange uppercase font-bold">
-                TO EXPLORE
-              </span>
-              <div className="w-[1px] h-7 bg-gradient-to-b from-gi-magenta via-gi-orange to-transparent animate-pulse" />
-            </div>
           </div>
         </div>
 
@@ -461,17 +320,17 @@ export default function ScrollytellingHero() {
               : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
           }`}
         >
-          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-[4.15rem] font-bold tracking-tight text-white max-w-5xl leading-[1.12] text-balance">
-            We build High-converting websites with Google and AI search optimizations, backed by digital growth solutions.
+          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-[4.15rem] font-bold tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.12] text-balance">
+            We build High-converting websites with digital growth solutions
           </h2>
 
           {/* Strict Monochrome CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
             <Link
-              href="/contact"
+              href="/portfolio"
               className="btn-primary w-full sm:w-auto cursor-pointer"
             >
-              <span>Book a Free 30-Min Call</span>
+              <span>View Portfolio</span>
               <ArrowUpRight className="w-4 h-4" />
             </Link>
             <Link
@@ -481,15 +340,10 @@ export default function ScrollytellingHero() {
               <span>Explore Solutions</span>
             </Link>
           </div>
-
-          <div className="mt-12 flex items-center gap-2 text-[11px] text-zinc-500 uppercase tracking-widest font-mono">
-            <span>Scroll to continue</span>
-            <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-          </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* ACT 03: THE GROW INVICTA PHILOSOPHY (Screen 3 / Phase 2)                  */}
+        {/* ACT 03: OWNERSHIP & SUPPORT (Screen 3 / Phase 2)                          */}
         {/* ========================================================================= */}
         <div
           className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 ${
@@ -500,36 +354,38 @@ export default function ScrollytellingHero() {
               : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
           }`}
         >
-          <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-white/[0.12] max-w-3xl shadow-2xl">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-brand-gradient font-bold mb-3 block">
-              The Grow Invicta Philosophy
+          <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-[var(--border)] max-w-3xl shadow-2xl">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] font-bold mb-3 block">
+              BUILT AROUND YOU
             </span>
-            <h3 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
-              You own your code. <br /><span className="text-brand-gradient">You own your assets.</span>
+            <h3 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] tracking-tight leading-[1.15]">
+              Built for you. <br />
+              Owned by you. <br />
+              <span className="text-brand-gradient">Supported by us.</span>
             </h3>
-            <p className="mt-4 text-xs sm:text-sm text-zinc-300 max-w-xl mx-auto leading-relaxed">
-              No hidden dependencies. No inflated hosting markups. Every sprint is designed to empower your business with complete source code, Super Admin access, and written administration guides.
+            <p className="mt-5 text-xs sm:text-sm text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed">
+              We build your digital presence without unnecessary lock-in. You retain ownership of your website and digital assets, while our subscription option keeps your website maintained, updated and backed up.
             </p>
 
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3 text-left">
-              <div className="p-4 bg-white/[0.02] border border-white/[0.08] hover:border-gi-magenta/40 transition-colors">
-                <div className="text-white font-mono text-sm font-bold">3–7 Days</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Express Staging</div>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+              <div className="p-4 bg-[var(--border-subtle)] border border-[var(--border)] hover:border-[#7C3AED]/50 transition-colors">
+                <div className="text-[var(--text-primary)] font-mono text-base font-bold">100%</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1 font-medium">Client Ownership</div>
               </div>
-              <div className="p-4 bg-white/[0.02] border border-white/[0.08] hover:border-gi-magenta/40 transition-colors">
-                <div className="text-white font-mono text-sm font-bold">100%</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Client Ownership</div>
+              <div className="p-4 bg-[var(--border-subtle)] border border-[var(--border)] hover:border-[#7C3AED]/50 transition-colors">
+                <div className="text-[#00D084] font-mono text-base font-bold">ONGOING</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1 font-medium">Maintenance &amp; Updates</div>
               </div>
-              <div className="p-4 bg-white/[0.02] border border-white/[0.08] hover:border-gi-magenta/40 transition-colors col-span-2 sm:col-span-1">
-                <div className="text-white font-mono text-sm font-bold">$0</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Agency Markup</div>
+              <div className="p-4 bg-[var(--border-subtle)] border border-[var(--border)] hover:border-[#7C3AED]/50 transition-colors">
+                <div className="text-[#7C3AED] font-mono text-base font-bold">YOUR CHOICE</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1 font-medium">Subscription or One-Time</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* ACT 04: HANDOVER TARGET (Screen 4 / Phase 3)                              */}
+        {/* ACT 04: FINAL HERO CTA (Screen 4 / Phase 3)                               */}
         {/* ========================================================================= */}
         <div
           className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 ${
@@ -538,30 +394,34 @@ export default function ScrollytellingHero() {
               : "opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
           }`}
         >
-          <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-white/[0.12] max-w-2xl shadow-2xl">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-brand-gradient font-bold mb-3 block">
-              Day 10 Handover Target
+          <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-[var(--border)] max-w-2xl shadow-2xl">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] font-bold mb-3 block">
+              READY WHEN YOU ARE
             </span>
-            <h3 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
-              Rapid execution without compromising engineering quality.
+            <h3 className="text-2xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight leading-snug">
+              From idea to execution. <br />
+              <span className="text-brand-gradient">Built to move your business forward.</span>
             </h3>
-            <p className="mt-3 text-xs sm:text-sm text-zinc-300">
-              Explore our 4 operational guarantees and 8 core digital solutions below.
+            <p className="mt-4 text-xs sm:text-sm text-[var(--text-secondary)] max-w-lg mx-auto leading-relaxed">
+              Websites, AI Search &amp; SEO, social growth, video editing and digital solutions &mdash; built around what your business actually needs.
             </p>
-            <div className="mt-6 flex items-center justify-center gap-3">
+            <div className="mt-8 flex items-center justify-center">
               <Link
-                href="/contact"
-                className="btn-primary cursor-pointer"
+                href="/contact?action=quote"
+                className="btn-primary font-mono text-xs cursor-pointer shadow-lg"
               >
-                <span>Schedule Free Call</span>
+                <span>GET STARTED ↗</span>
               </Link>
             </div>
           </div>
         </div>
 
+        {/* Persistent Hero UI Overlay: Single Static SCROLL TO EXPLORE Indicator */}
+        <ScrollToExplore innerRef={scrollCueRef} />
+
         {/* Bottom Pinned Hairline Trust Bar */}
         <div className="absolute bottom-6 left-0 right-0 z-20 px-4 pointer-events-none hidden md:block">
-          <div className="max-w-5xl mx-auto flex items-center justify-between py-2.5 px-6 bg-[#0a0a0a]/80 backdrop-blur-md border border-white/[0.1] text-xs text-zinc-300 font-mono">
+          <div className="max-w-5xl mx-auto flex items-center justify-between py-2.5 px-6 bg-[#0a0a0a]/80 backdrop-blur-md border border-[var(--border)] text-xs text-[var(--text-secondary)] font-mono">
             <div>3–7 Day Express Staging</div>
             <div className="text-zinc-600">/</div>
             <div>100% Asset Ownership</div>

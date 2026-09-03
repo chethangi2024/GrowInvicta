@@ -22,6 +22,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Large raw asset / design source archives (exclude from web app repo)
+/Portfolio Page/
+/Client Websites/
+/Client logos/
+/GI Hero Frames/
+/Profile picture/
+/Hero Animation/
+*.pdf
+
+
 # Local env files
 .env*.local
 .env

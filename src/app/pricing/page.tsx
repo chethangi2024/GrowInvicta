@@ -1,156 +1,174 @@
 import React from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { PRICING_PACKAGES, PRICING_FAQS } from "@/lib/constants";
-import CalEmbed from "@/components/contact/CalEmbed";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import CapabilityFaqAccordion, { FaqItem } from "@/components/solutions/CapabilityFaqAccordion";
+import PricingMatrix from "@/components/pricing/PricingMatrix";
+import { PRICING_FAQS } from "@/lib/constants";
 
-export const metadata = {
-  title: "Transparent Sprint Pricing & Architecture | Grow Invicta",
+export const metadata: Metadata = {
+  title: "Transparent Web Development & Growth Pricing | Grow Invicta",
   description:
-    "Explore Grow Invicta's transparent sprint pricing for Next.js custom web, WordPress/Elementor, Shopify, video batches, and Canva branding kits with 100% full ownership.",
+    "Transparent pricing in INR & USD for Next.js, WordPress, Shopify, SEO & video editing. Fast-track 3-7 day live staging & 100% full asset ownership.",
+  alternates: {
+    canonical: "https://growinvicta.com/pricing",
+  },
+  keywords: [
+    "Web Development Pricing",
+    "Transparent Agency Packages",
+    "Next.js Development Cost",
+    "Elementor WordPress Pricing",
+    "Shopify Store Setup Cost",
+    "Digital Growth Packages INR USD",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "Grow Invicta",
+    title: "Transparent Web Development & Growth Pricing | Grow Invicta",
+    description:
+      "Transparent pricing in INR & USD for Next.js, WordPress, Shopify, SEO & video editing. Fast-track 3-7 day live staging & 100% full asset ownership.",
+    url: "https://growinvicta.com/pricing",
+    images: [
+      {
+        url: "https://growinvicta.com/images/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Grow Invicta Transparent Pricing & Sprint Packages",
+      },
+    ],
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Transparent Web Development & Growth Pricing | Grow Invicta",
+    description:
+      "Transparent pricing in INR & USD for Next.js, WordPress, Shopify, SEO & video editing. Fast-track 3-7 day live staging & 100% full asset ownership.",
+    images: ["https://growinvicta.com/images/og-home.jpg"],
+  },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://growinvicta.com",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Pricing",
+      item: "https://growinvicta.com/pricing",
+    },
+  ],
+};
+
+const priceSpecSchema = {
+  "@context": "https://schema.org",
+  "@type": "PriceSpecification",
+  "@id": "https://growinvicta.com/pricing#pricing-structure",
+  name: "Grow Invicta Transparent Sprint Packages",
+  description:
+    "Milestone-driven sprint pricing in INR and USD with 3-7 day live staging, $0 markup hosting infrastructure, and 100% asset handover.",
+  priceCurrency: "USD",
+  validFrom: "2026-01-01",
+};
+
+const faqPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: PRICING_FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: faq.a,
+    },
+  })),
 };
 
 export default function PricingPage() {
   return (
-    <div className="pt-32 pb-24 sm:pb-32 bg-[#050505] text-white">
+    <div className="pt-28 sm:pt-32 lg:pt-36 pb-20 sm:pb-24 lg:pb-28 bg-[var(--page-bg)] text-[var(--text-primary)]">
+      {/* Structured Data Scripts */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(priceSpecSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="max-w-3xl mb-16 gsap-reveal-header">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-            Pricing Architecture
-          </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
-            Transparent sprint packages. <br />
-            Zero hidden fees.
-          </h1>
-          <p className="mt-6 text-sm sm:text-base text-zinc-400 leading-relaxed">
-            Every package is structured around rapid milestone execution, 100% full asset handover, written administration manuals, and $0 agency markup on your infrastructure.
-          </p>
+        {/* Breadcrumb */}
+        <div className="mb-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Home</span>
+          </Link>
         </div>
 
-        {/* 5 Service Pricing Sections */}
-        <div className="border-t border-l border-white/[0.1] grid grid-cols-1 lg:grid-cols-3 mb-24 gsap-stagger-container">
-          {PRICING_PACKAGES.map((pkg, idx) => (
-            <div
-              key={idx}
-              className={`border-r border-b border-white/[0.1] p-8 sm:p-12 flex flex-col justify-between bg-[#080808] hover:bg-[#0c0c0c] transition-colors gsap-stagger-item ${
-                idx === 0 ? "border-flow-subtle" : ""
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-6 pb-3 border-b border-white/[0.08] font-mono text-xs">
-                  <span className="text-zinc-500 uppercase">{pkg.category}</span>
-                  <span className="text-zinc-300 border border-white/[0.1] px-2 py-0.5">{pkg.badge}</span>
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
-                  {pkg.title}
-                </h2>
-                <p className="text-xs text-zinc-400 mb-8 leading-relaxed">
-                  {pkg.summary}
-                </p>
-
-                <div className="space-y-3 mb-8 font-mono text-xs text-zinc-300">
-                  <span className="text-[10px] uppercase text-zinc-500 block mb-2">
-                    Inclusions
-                  </span>
-                  {pkg.deliverables.map((deliv, dIdx) => (
-                    <div key={dIdx} className="flex items-start gap-2.5">
-                      <span className="text-white font-bold">&mdash;</span>
-                      <span>{deliv}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-white/[0.08] space-y-4 font-mono">
-                <div className="p-3 border border-white/[0.06] bg-[#050505] text-[11px] text-zinc-400">
-                  <span className="text-white block mb-0.5">Infrastructure:</span>
-                  {pkg.infrastructure}
-                </div>
-                <Link
-                  href="/contact"
-                  className="btn-primary w-full"
-                >
-                  <span>Book Discovery Call</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
+        {/* Hero Section */}
+        <section className="mb-20 sm:mb-24 lg:mb-28 gsap-reveal-header">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-[var(--border-subtle)] border border-[var(--border)] text-[11px] font-mono uppercase tracking-widest text-[var(--text-secondary)] mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
+              <span>SPRINT PACKAGES &amp; CAPABILITIES</span>
             </div>
-          ))}
-        </div>
 
-        {/* Standard Inclusions Across All Web Builds */}
-        <div className="p-8 sm:p-12 border border-white/[0.1] bg-[#080808] mb-24 gsap-reveal-card">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-            Standards
-          </span>
-          <h2 className="text-2xl font-bold text-white mb-8 tracking-tight">
-            Included with Every Web Build
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 font-mono text-xs gsap-stagger-container">
-            <div className="border-t border-white/[0.1] pt-4 gsap-stagger-item">
-              <strong className="text-white text-sm block mb-1">01 / 3–7 Day Staging</strong>
-              <span className="text-zinc-400">Rapid working prototype deployed on live server.</span>
-            </div>
-            <div className="border-t border-white/[0.1] pt-4 gsap-stagger-item">
-              <strong className="text-white text-sm block mb-1">02 / 100% Ownership</strong>
-              <span className="text-zinc-400">Target Day 10 complete asset and source transfer.</span>
-            </div>
-            <div className="border-t border-white/[0.1] pt-4 gsap-stagger-item">
-              <strong className="text-white text-sm block mb-1">03 / 4 SEO Articles</strong>
-              <span className="text-zinc-400">Pre-written authority content loaded into CMS.</span>
-            </div>
-            <div className="border-t border-white/[0.1] pt-4 gsap-stagger-item">
-              <strong className="text-white text-sm block mb-1">04 / 30 Days QA</strong>
-              <span className="text-zinc-400">Dedicated issue resolution after final handover.</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing FAQs */}
-        <div className="mb-24">
-          <div className="max-w-2xl mb-12 gsap-reveal-header">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-              Clarity
-            </span>
-            <h2 className="text-3xl font-bold text-white tracking-tight">
-              Frequently Asked Questions
-            </h2>
-          </div>
-
-          <div className="space-y-4 max-w-4xl gsap-stagger-container">
-            {PRICING_FAQS.map((faq, idx) => (
-              <div
-                key={idx}
-                className="p-6 sm:p-8 border border-white/[0.08] bg-[#080808] gsap-stagger-item"
-              >
-                <h3 className="text-base font-bold text-white mb-2 flex items-start gap-2">
-                  <span className="font-mono text-zinc-500">Q.</span>
-                  <span>{faq.q}</span>
-                </h3>
-                <p className="text-xs sm:text-sm text-zinc-400 pl-5 leading-relaxed">
-                  {faq.a}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Booking CTA */}
-        <div className="pt-12 border-t border-white/[0.1] gsap-reveal-card">
-          <div className="max-w-3xl mb-12">
-            <h2 className="text-3xl font-bold text-white">
-              Get an accurate scope and timeline.
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-2">
-              Book a free 30-minute strategy call to review your exact requirements.
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--text-primary)] leading-[1.1] mb-6">
+              Fixed-scope pricing. Zero agency lock-in.
+            </h1>
+            <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-3xl leading-relaxed">
+              Transparent, milestone-based sprint pricing with 100% full source code and root infrastructure handover upon final sign-off.
             </p>
           </div>
-          <div className="max-w-4xl">
-            <CalEmbed />
+        </section>
+
+        {/* Pricing Matrix with Interactive Currency Switcher */}
+        <section className="mb-20 sm:mb-24 lg:mb-28">
+          <PricingMatrix />
+        </section>
+
+        {/* Pricing FAQs Section */}
+        <section className="mb-14 sm:mb-16">
+          <div className="max-w-3xl mb-10 gsap-reveal-header">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-2">
+              CLARIFICATIONS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text-primary)]">
+              Frequently Asked Questions About Pricing
+            </h2>
           </div>
-        </div>
+
+          <div className="gsap-reveal-card">
+            <CapabilityFaqAccordion faqs={PRICING_FAQS} />
+          </div>
+
+          <div className="mt-8 flex items-center justify-between pt-4 border-t border-[var(--border-subtle)]">
+            <span className="text-xs text-[var(--text-muted)] font-mono">
+              Have technical or deliverable questions?
+            </span>
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <span>View all FAQs</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

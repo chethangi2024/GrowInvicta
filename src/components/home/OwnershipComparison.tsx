@@ -1,145 +1,166 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check, Sparkles, ShieldCheck } from "lucide-react";
+import BorderGlow from "@/components/ui/BorderGlow";
 
 export default function OwnershipComparison() {
   return (
-    <section className="py-24 sm:py-32 bg-[#050505] border-t border-white/[0.1]">
+    <section className="spatial-section py-20 sm:py-24 lg:py-28 bg-[var(--page-bg)] border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="max-w-3xl mb-16">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-2">
-            03 / Infrastructure Architecture
+        <div className="max-w-3xl mb-14 sm:mb-16 gsap-reveal-header">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] block mb-2">
+            TRANSPARENT ENGAGEMENT MODELS
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
-            You should own what you pay for.
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">
+            Managed website care or full milestone handover.
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-zinc-400 leading-relaxed">
-            Most digital agencies markup hosting 300% and lock access keys in private accounts. Grow Invicta delivers direct infrastructure autonomy from day one.
+          <p className="mt-4 text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">
+            Choose our preferred continuous website subscription for complete peace of mind, or opt for a one-time build milestone. You always retain direct ownership of your hosting and credentials.
           </p>
         </div>
 
         {/* Architectural 4-Node Blueprint */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-white/[0.1] mb-12 font-mono">
-          <div className="border-r border-b border-white/[0.1] p-6 bg-[#080808]">
-            <div className="text-gi-magenta text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 01 / ASSETS</div>
-            <div className="text-sm font-bold text-white mb-1">100% Client Ownership</div>
-            <div className="text-xs text-zinc-400">Git repos, source code & editable Canva master links transferred.</div>
-          </div>
-          <div className="border-r border-b border-white/[0.1] p-6 bg-[#080808]">
-            <div className="text-gi-magenta text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 02 / ACCESS</div>
-            <div className="text-sm font-bold text-white mb-1">Root &amp; Super Admin Access</div>
-            <div className="text-xs text-zinc-400">Zero withheld credentials. Full administrative keys to your stack.</div>
-          </div>
-          <div className="border-r border-b border-white/[0.1] p-6 bg-[#080808]">
-            <div className="text-gi-magenta text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 03 / BILLING</div>
-            <div className="text-sm font-bold text-white mb-1">$0 Infrastructure Markup</div>
-            <div className="text-xs text-zinc-400">Direct client billing with AWS, Vercel, Cloudways &amp; Hostinger.</div>
-          </div>
-          <div className="border-r border-b border-white/[0.1] p-6 bg-[#080808]">
-            <div className="text-gi-magenta text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 04 / AUTONOMY</div>
-            <div className="text-sm font-bold text-white mb-1">Written Documentation</div>
-            <div className="text-xs text-zinc-400">Step-by-step SOPs &amp; manuals so your internal team operates freely.</div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12 font-mono">
+          <BorderGlow className="p-6" borderRadius={2} glowRadius={25} glowIntensity={0.9} colors={["#7C3AED", "#FF6A00"]}>
+            <div className="text-gi-purple text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 01 / ASSETS</div>
+            <div className="text-sm font-bold text-[var(--text-primary)] mb-1">100% Client Ownership</div>
+            <div className="text-xs text-[var(--text-secondary)]">Source code, repositories &amp; design assets always shared with you.</div>
+          </BorderGlow>
+          <BorderGlow className="p-6" borderRadius={2} glowRadius={25} glowIntensity={0.9} colors={["#7C3AED", "#FF6A00"]}>
+            <div className="text-gi-purple text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 02 / ACCESS</div>
+            <div className="text-sm font-bold text-[var(--text-primary)] mb-1">Root &amp; Super Admin Access</div>
+            <div className="text-xs text-[var(--text-secondary)]">Zero withheld credentials. Full administrative keys to your stack.</div>
+          </BorderGlow>
+          <BorderGlow className="p-6" borderRadius={2} glowRadius={25} glowIntensity={0.9} colors={["#7C3AED", "#FF6A00"]}>
+            <div className="text-gi-purple text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 03 / HOSTING</div>
+            <div className="text-sm font-bold text-[var(--text-primary)] mb-1">Hosting is Separate</div>
+            <div className="text-xs text-[var(--text-secondary)]">Deployed to your own provider account (AWS, Vercel, Hostinger).</div>
+          </BorderGlow>
+          <BorderGlow className="p-6" borderRadius={2} glowRadius={25} glowIntensity={0.9} colors={["#7C3AED", "#FF6A00"]}>
+            <div className="text-gi-purple text-[10px] uppercase tracking-wider font-bold mb-2">LAYER 04 / CARE</div>
+            <div className="text-sm font-bold text-[var(--text-primary)] mb-1">Continuous Care</div>
+            <div className="text-xs text-[var(--text-secondary)]">Daily automated web backups &amp; ongoing website maintenance included.</div>
+          </BorderGlow>
         </div>
 
         {/* Side-by-Side Comparison Architecture */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 border border-white/[0.1] border-flow-box">
-          {/* Column 1: Self-Managed ($0 Markup) */}
-          <div className="p-8 sm:p-12 border-b lg:border-b-0 lg:border-r border-white/[0.1] bg-[#080808] flex flex-col justify-between">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Column 1: Website Subscription (Preferred) */}
+          <BorderGlow
+            className="p-8 sm:p-12 flex flex-col justify-between"
+            borderRadius={2}
+            glowRadius={32}
+            glowIntensity={1.3}
+            colors={["#7C3AED", "#FF6A00"]}
+            backgroundColor="#151820"
+          >
             <div>
-              <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/[0.08]">
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border)]">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-1">
-                    Standard Inclusion
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] block mb-1">
+                    PREFERRED MANAGED MODEL
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                    Self-Managed
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
+                    Website Subscription
                   </h3>
                 </div>
-                <div className="font-mono text-xl font-bold text-white border border-white/[0.15] px-3 py-1">
-                  $0 Markup
+                <div className="font-mono text-xs font-semibold text-[#7C3AED] border border-[#7C3AED]/40 bg-[#7C3AED]/10 px-3 py-1">
+                  ₹8,000 / Year Renewal
                 </div>
               </div>
 
-              <p className="text-xs sm:text-sm text-zinc-400 mb-8 leading-relaxed">
-                You pay your infrastructure provider directly (AWS, Vercel, Cloudways, Hostinger). You hold root credentials and complete billing autonomy.
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-8 leading-relaxed">
+                We handle the entire website so you can focus on running your business. Includes continuous maintenance, updates, security patching, and daily backups.
               </p>
 
-              <ul className="space-y-4 text-xs sm:text-sm text-zinc-300 font-mono">
+              <ul className="space-y-4 text-xs sm:text-sm text-[var(--text-secondary)] font-mono">
                 {[
-                  "100% Client-Owned Infrastructure & Accounts",
-                  "$0 Agency Markup on Hosting & Domain Fees",
-                  "Direct Provider Billing (AWS / Vercel / Cloudways)",
-                  "Complete Root & Super Admin Access Transferred",
-                  "Client Controls All Billing, Renewals & Scaling",
-                  "Zero Dependency on Grow Invicta for Routine Operations",
-                  "Written Step-by-Step Administration Guides Included"
+                  "We handle everything (Design, build, launch & updates)",
+                  "Continuous website maintenance & security updates included",
+                  "Daily automated web backup & uptime monitoring",
+                  "Everything shared with you (Full codebase & environment access)",
+                  "Hosting is separate on your own direct provider account",
+                  "3–7 Days express staging delivery candidate",
+                  "Predictable yearly renewal (₹8,000/yr INR or $249/yr USD)"
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <span className="text-white font-bold">&mdash;</span>
-                    <span>{item}</span>
+                    <Check className="w-4 h-4 text-[#00D084] shrink-0 mt-0.5" />
+                    <span className="text-[var(--text-secondary)]">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="mt-12 pt-6 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-zinc-500">
-              <span>Standard with all builds</span>
-              <span className="text-white">$0 / month to agency</span>
-            </div>
-          </div>
-
-          {/* Column 2: Optional Managed Care */}
-          <div className="p-8 sm:p-12 bg-[#050505] flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/[0.08]">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-1">
-                    Optional Support
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                    Managed Annual Care
-                  </h3>
-                </div>
-                <div className="font-mono text-xs font-semibold text-zinc-400 border border-white/[0.1] px-3 py-1">
-                  Optional Retainer
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-zinc-400 mb-8 leading-relaxed">
-                For organizations wanting hands-off peace of mind. Our engineering team handles updates, continuous monitoring, and priority technical support.
-              </p>
-
-              <ul className="space-y-4 text-xs sm:text-sm text-zinc-400 font-mono">
-                {[
-                  "Completely Optional (Never Mandatory)",
-                  "Continuous Security Hardening & Vulnerability Scans",
-                  "Weekly CMS, Plugin & Core Codebase Updates",
-                  "24/7 Server Uptime & Performance Monitoring",
-                  "Automated Offsite Daily Backups & Recovery",
-                  "Priority Technical Support & Issue Resolution",
-                  "Quarterly Core Web Vitals Audits"
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <span className="text-zinc-500">&mdash;</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-12 pt-6 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono">
-              <span className="text-zinc-500">Add only if you need support</span>
+            <div className="mt-12 pt-6 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono">
+              <span className="text-[var(--text-muted)]">Complete peace of mind</span>
               <Link
                 href="/pricing"
-                className="text-white hover:text-zinc-300 flex items-center gap-1 uppercase tracking-wider"
+                className="text-[#7C3AED] hover:text-[#9F67FF] flex items-center gap-1 uppercase tracking-wider font-semibold"
               >
-                <span>View Care Tiers</span>
-                <ArrowUpRight className="w-3 h-3" />
+                <span>View Subscription Plans</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          </div>
+          </BorderGlow>
+
+          {/* Column 2: One-Time Build Option */}
+          <BorderGlow
+            className="p-8 sm:p-12 flex flex-col justify-between"
+            borderRadius={2}
+            glowRadius={32}
+            glowIntensity={1.0}
+            colors={["#7C3AED", "#FF6A00"]}
+            backgroundColor="#111318"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border)]">
+                <div>
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-muted)] block mb-1">
+                    MILESTONE SPRINT
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
+                    One-Time Build
+                  </h3>
+                </div>
+                <div className="font-mono text-xs font-semibold text-[var(--text-secondary)] border border-[var(--border)] px-3 py-1">
+                  Single Milestone
+                </div>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-8 leading-relaxed">
+                For organizations with internal web teams. We build and deploy the complete site, transfer all assets and documentation, and hand over full management.
+              </p>
+
+              <ul className="space-y-4 text-xs sm:text-sm text-[var(--text-secondary)] font-mono">
+                {[
+                  "100% Full Source Code, Git Repos & Master Assets Handover",
+                  "Delivered with comprehensive written documentation & manuals",
+                  "Super Admin credentials & root environment transfer",
+                  "3–7 Days express staging delivery turnaround",
+                  "Hosting set up on your own direct provider account",
+                  "30 Days post-launch QA warranty support included",
+                  "You handle ongoing maintenance & updates after launch"
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <span className="text-[var(--text-muted)]">&mdash;</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-12 pt-6 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono">
+              <span className="text-[var(--text-muted)]">Full autonomy upon launch</span>
+              <Link
+                href="/pricing"
+                className="text-[var(--text-primary)] hover:text-[var(--text-secondary)] flex items-center gap-1 uppercase tracking-wider"
+              >
+                <span>View One-Time Rates</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </BorderGlow>
         </div>
       </div>
     </section>

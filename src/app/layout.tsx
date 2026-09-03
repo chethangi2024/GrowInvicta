@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "@/styles/globals.css";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
 import ScrollSectionAnimator from "@/components/animations/ScrollSectionAnimator";
+import GlobalEarthBackground from "@/components/background/GlobalEarthBackground";
 
-const inter = Inter({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -71,16 +73,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} dark`}>
+    <html lang="en" className={`${poppins.variable} dark font-sans`}>
       <head>
         <link rel="icon" type="image/webp" href="/GI-Favicon.webp" />
         <link rel="icon" type="image/png" href="/GI-Favicon.png" />
         <link rel="apple-touch-icon" href="/GI-Favicon.png" />
       </head>
-      <body className="bg-[#050505] text-zinc-200 antialiased selection:bg-white selection:text-black min-h-screen flex flex-col">
+      <body className="bg-[#07080A] text-[#F5F5F5] antialiased selection:bg-[#7C3AED] selection:text-white min-h-screen flex flex-col">
+        {/* Global Subtle 3D Earth Atmospheric Background */}
+        <GlobalEarthBackground />
+
+        {/* Global GSAP Section & Staggered Content Animator */}
         <ScrollSectionAnimator />
+
+        {/* Navigation Layer */}
         <Navbar />
-        <main className="flex-grow pt-0">{children}</main>
+
+        {/* Main Content Area */}
+        <main className="relative z-10 flex-grow pt-0">{children}</main>
+
+        {/* Footer */}
         <Footer />
       </body>
     </html>

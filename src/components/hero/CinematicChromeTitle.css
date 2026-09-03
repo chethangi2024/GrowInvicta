@@ -1,0 +1,238 @@
+/* ==========================================================================
+   Cinematic 3D Metallic Silver/Chrome Title - GROW INVICTA
+   ========================================================================== */
+
+.cinematic-chrome-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  user-select: none;
+  contain: layout style;
+}
+
+/* Base Extruded Dimensional Layer */
+.cinematic-chrome-3d {
+  position: relative;
+  display: inline-block;
+  color: #c4cbd4;
+  font-family: var(--font-poppins), 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  
+  /* Multi-stop 3D Extrusion & Ambient Occlusion Shadow */
+  text-shadow:
+    0 1px 0 #9ca3af,
+    0 2px 0 #7b828e,
+    0 3px 0 #5f6570,
+    0 4px 0 #484d56,
+    0 5px 0 #33373e,
+    0 6px 1px rgba(0, 0, 0, 0.6),
+    0 8px 14px rgba(0, 0, 0, 0.75),
+    0 16px 32px rgba(0, 0, 0, 0.85);
+  
+  /* Initial Entrance State */
+  animation: chromeEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Chrome Face Surface with Multi-band Specular Gradient */
+.cinematic-chrome-face {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(
+    180deg,
+    #FFFFFF 0%,
+    #F3F5F7 8%,
+    #D0D7E0 22%,
+    #8E98A5 46%,
+    #434850 49%,
+    #FFFFFF 52%,
+    #E1E6EC 64%,
+    #9BA4B0 82%,
+    #4E545E 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  z-index: 2;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8));
+}
+
+/* Beveled Chisel & Specular Edge Highlight Layer */
+.cinematic-chrome-bevel {
+  position: absolute;
+  inset: 0;
+  display: inline-block;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  pointer-events: none;
+  z-index: 3;
+  
+  /* Crisp Specular Edge Stroke */
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.2) 30%,
+    rgba(70, 75, 85, 0.6) 50%,
+    rgba(255, 255, 255, 0.85) 70%,
+    rgba(30, 33, 38, 0.8) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: overlay;
+  opacity: 0.85;
+}
+
+/* Moving Studio Light Reflection Layer */
+.cinematic-chrome-light-sweep {
+  position: absolute;
+  inset: 0;
+  display: inline-block;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  pointer-events: none;
+  z-index: 4;
+  
+  background: linear-gradient(
+    112deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.0) 42%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(220, 235, 255, 0.75) 52%,
+    rgba(255, 255, 255, 0.0) 58%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  mix-blend-mode: screen;
+  
+  /* Initial sweep + continuous slow periodic luxury shine */
+  animation: studioLightSweep 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.4s;
+  will-change: background-position, opacity;
+}
+
+/* Subtle Specular Horizon Sheen */
+.cinematic-chrome-horizon {
+  position: absolute;
+  inset: 0;
+  display: inline-block;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 48%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 53%,
+    transparent 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  mix-blend-mode: color-dodge;
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes chromeEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px) translateZ(0);
+    filter: brightness(0.7) contrast(1.1);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.008) translateY(-1px) translateZ(0);
+    filter: brightness(1.15) contrast(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateZ(0);
+    filter: brightness(1) contrast(1);
+  }
+}
+
+@keyframes studioLightSweep {
+  0% {
+    background-position: 250% 0;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  28% {
+    background-position: -150% 0;
+    opacity: 1;
+  }
+  32% {
+    opacity: 0;
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: -150% 0;
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Responsive Scaling & Optimizations
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .cinematic-chrome-3d {
+    text-shadow:
+      0 1px 0 #9ca3af,
+      0 2px 0 #7b828e,
+      0 3px 0 #525964,
+      0 4px 0 #33373e,
+      0 5px 8px rgba(0, 0, 0, 0.75),
+      0 10px 20px rgba(0, 0, 0, 0.85);
+  }
+  .cinematic-chrome-bevel {
+    -webkit-text-stroke: 0.75px rgba(255, 255, 255, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-chrome-3d {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .cinematic-chrome-light-sweep {
+    animation: none;
+    opacity: 0.4;
+    background-position: 50% 0;
+  }
+}
