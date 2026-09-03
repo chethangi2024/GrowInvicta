@@ -131,7 +131,12 @@ export default function QuoteForm({ initialService, initialPlan, initialAnimatio
           .join(" | ");
       }
 
-      const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "64b81da3-e7c0-4d0a-90a5-6466c57633b9";
+      const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
+      if (!accessKey) {
+        setErrorMessage("Form service is temporarily unavailable. Please try again or reach out directly.");
+        setStatus("error");
+        return;
+      }
 
       const payload = {
         access_key: accessKey,
