@@ -144,14 +144,15 @@ export default function GlobalEarthBackground() {
       const width = window.innerWidth;
 
       if (width < 480) {
-        // Narrow & Standard Mobile (320px, 375px, 390px, 414px, 430px)
-        const mobileScale = Math.min(Math.max((width / 390) * 0.70, 0.58), 0.78);
-        earthGroup.position.set(0.0, -0.05, -0.2);
+        // Narrow & Standard Mobile (320px - 479px)
+        // Scaled to fit gracefully behind text content without clipping or visual clutter
+        const mobileScale = Math.min(Math.max((width / 390) * 0.52, 0.44), 0.58);
+        earthGroup.position.set(0.0, -0.04, -0.2);
         earthGroup.scale.setScalar(mobileScale);
       } else if (width < 768) {
         // Large Mobile & Phablets (480px - 767px)
-        earthGroup.position.set(0.0, -0.05, -0.2);
-        earthGroup.scale.setScalar(0.78);
+        earthGroup.position.set(0.0, -0.04, -0.2);
+        earthGroup.scale.setScalar(0.62);
       } else if (width < 1200) {
         // Tablet / Small Laptop (768px - 1199px) - UNCHANGED
         earthGroup.position.set(1.25, 0.05, -0.2);

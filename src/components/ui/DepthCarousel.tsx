@@ -128,10 +128,14 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     let actualSpread = cfg.spread;
     let actualDepth = cfg.depth;
 
-    if (containerW < 640) {
-      maxVisible = 1.5;
-      actualSpread = Math.min(30, cfg.spread * 0.35);
-      actualDepth = Math.min(140, cfg.depth * 0.65);
+    if (containerW < 480) {
+      maxVisible = 1;
+      actualSpread = Math.min(16, cfg.spread * 0.18);
+      actualDepth = Math.min(100, cfg.depth * 0.45);
+    } else if (containerW < 640) {
+      maxVisible = 1.2;
+      actualSpread = Math.min(24, cfg.spread * 0.26);
+      actualDepth = Math.min(120, cfg.depth * 0.55);
     } else if (containerW < 1024) {
       maxVisible = 2.5;
       actualSpread = Math.min(60, cfg.spread * 0.7);
@@ -246,10 +250,15 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       containerWidthRef.current = w;
       const cfg = cfgRef.current;
       
-      // Responsive scale calculation
+      // Responsive scale calculation strictly bounded by container width
       let calculatedScale = 1;
-      if (w < 640) {
-        calculatedScale = clamp((w - 24) / cfg.cardWidth, 0.48, 0.88);
+      if (w < 480) {
+        // Narrow and standard mobile (320px - 479px)
+        const availableW = Math.max(w - 32, 260);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.40, 0.68);
+      } else if (w < 640) {
+        const availableW = Math.max(w - 48, 320);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.52, 0.78);
       } else if (w < 1024) {
         calculatedScale = clamp((w - 60) / (cfg.cardWidth + 120), 0.65, 0.95);
       } else {

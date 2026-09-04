@@ -22,13 +22,13 @@ export default function ScrollSectionAnimator() {
       const isMobile = window.innerWidth < 768;
 
       // Subtle, cinematic depth values adhering to interaction guidelines
-      const enterScale = isMobile ? 0.99 : 0.985;
-      const enterOpacity = isMobile ? 0.90 : 0.85;
-      const enterY = isMobile ? 12 : 20;
+      const enterScale = isMobile ? 0.995 : 0.985;
+      const enterOpacity = isMobile ? 0.92 : 0.85;
+      const enterY = isMobile ? 8 : 20;
 
-      const exitScale = isMobile ? 0.98 : 0.96;
-      const exitOpacity = isMobile ? 0.90 : 0.85;
-      const exitY = isMobile ? -12 : -20;
+      const exitScale = isMobile ? 0.99 : 0.96;
+      const exitOpacity = isMobile ? 0.92 : 0.85;
+      const exitY = isMobile ? -8 : -20;
 
       // Small delay to ensure all DOM nodes for the route are fully mounted
       const timer = setTimeout(() => {
