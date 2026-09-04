@@ -49,27 +49,99 @@ function ScrollToExplore({
 export default function ScrollytellingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const frameObjRef = useRef<{ frame: number }>({ frame: 0 });
+  const imagesMapRef = useRef<Map<number, HTMLImageElement>>(new Map());
+  const loadingSetRef = useRef<Set<number>>(new Set());
+  const currentFrameRef = useRef<number>(0);
+  const rafIdRef = useRef<number | null>(null);
+
+  const phase0Ref = useRef<HTMLDivElement>(null);
+  const phase1Ref = useRef<HTMLDivElement>(null);
+  const phase2Ref = useRef<HTMLDivElement>(null);
+  const phase3Ref = useRef<HTMLDivElement>(null);
 
   const capabilityRefs = useRef<(HTMLElement | null)[]>([]);
   const scrollCueRef = useRef<HTMLDivElement | null>(null);
 
   const [isInitialReady, setIsInitialReady] = useState<boolean>(true);
-  const [activePhase, setActivePhase] = useState<number>(0);
+  const cachedGradientRef = useRef<{
+    width: number;
+    height: number;
+    gradient: CanvasGradient | null;
+  }>({ width: 0, height: 0, gradient: null });
+
+  // Priority windowed frame loader
+  const loadFrame = useCallback((frameIndex: number): Promise<HTMLImageElement | null> => {
+    const clamped = Math.min(Math.max(frameIndex, 0), TOTAL_FRAMES - 1);
+    if (imagesMapRef.current.has(clamped)) {
+      return Promise.resolve(imagesMapRef.current.get(clamped)!);
+    }
+    if (loadingSetRef.current.has(clamped)) {
+      return Promise.resolve(null);
+    }
+
+    loadingSetRef.current.add(clamped);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = getFramePath(clamped + 1);
+      img.onload = () => {
+        imagesMapRef.current.set(clamped, img);
+        loadingSetRef.current.delete(clamped);
+        resolve(img);
+      };
+      img.onerror = () => {
+        loadingSetRef.current.delete(clamped);
+        resolve(null);
+      };
+    });
+  }, []);
+
+  // Preload dynamic window around target frame
+  const preloadSurroundingFrames = useCallback((targetFrame: number) => {
+    // Window of ±15 frames around target, loading nearest frames first
+    const windowSize = 15;
+    for (let offset = 1; offset <= windowSize; offset++) {
+      const next = targetFrame + offset;
+      const prev = targetFrame - offset;
+      if (next < TOTAL_FRAMES && !imagesMapRef.current.has(next) && !loadingSetRef.current.has(next)) {
+        loadFrame(next);
+      }
+      if (prev >= 0 && !imagesMapRef.current.has(prev) && !loadingSetRef.current.has(prev)) {
+        loadFrame(prev);
+      }
+    }
+  }, [loadFrame]);
+
+  // Find nearest available loaded frame
+  const getNearestLoadedFrame = useCallback((targetFrame: number): HTMLImageElement | null => {
+    if (imagesMapRef.current.has(targetFrame)) {
+      return imagesMapRef.current.get(targetFrame)!;
+    }
+    // Search outwards for closest cached frame to prevent any blank flicker
+    for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
+      const prev = targetFrame - offset;
+      if (prev >= 0 && imagesMapRef.current.has(prev)) {
+        return imagesMapRef.current.get(prev)!;
+      }
+      const next = targetFrame + offset;
+      if (next < TOTAL_FRAMES && imagesMapRef.current.has(next)) {
+        return imagesMapRef.current.get(next)!;
+      }
+    }
+    return imagesMapRef.current.get(0) || null;
+  }, []);
 
   // Draw frame on canvas with aspect ratio cover and crisp rendering
   const drawFrame = useCallback((frameIndex: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
     const clampedIndex = Math.min(Math.max(Math.round(frameIndex), 0), TOTAL_FRAMES - 1);
-    const img = imagesRef.current[clampedIndex] || imagesRef.current[0];
+    const img = getNearestLoadedFrame(clampedIndex);
     const width = canvas.width;
     const height = canvas.height;
 
@@ -100,57 +172,119 @@ export default function ScrollytellingHero() {
 
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-      // Vignette overlay for seamless edge blending into #07080A
-      const gradient = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        Math.min(width, height) * 0.28,
-        width / 2,
-        height / 2,
-        Math.max(width, height) * 0.65
-      );
-      gradient.addColorStop(0, "rgba(7, 8, 10, 0)");
-      gradient.addColorStop(0.75, "rgba(7, 8, 10, 0.45)");
-      gradient.addColorStop(1, "rgba(7, 8, 10, 0.90)");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
+      // Cached Vignette overlay for seamless edge blending into #07080A
+      if (
+        !cachedGradientRef.current.gradient ||
+        cachedGradientRef.current.width !== width ||
+        cachedGradientRef.current.height !== height
+      ) {
+        const gradient = ctx.createRadialGradient(
+          width / 2,
+          height / 2,
+          Math.min(width, height) * 0.28,
+          width / 2,
+          height / 2,
+          Math.max(width, height) * 0.65
+        );
+        gradient.addColorStop(0, "rgba(7, 8, 10, 0)");
+        gradient.addColorStop(0.75, "rgba(7, 8, 10, 0.45)");
+        gradient.addColorStop(1, "rgba(7, 8, 10, 0.90)");
+        cachedGradientRef.current = { width, height, gradient };
+      }
+
+      if (cachedGradientRef.current.gradient) {
+        ctx.fillStyle = cachedGradientRef.current.gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+  }, [getNearestLoadedFrame]);
+
+  // Request Animation Frame batched render
+  const scheduleRender = useCallback((targetFrame: number) => {
+    currentFrameRef.current = targetFrame;
+    if (rafIdRef.current !== null) return;
+    rafIdRef.current = requestAnimationFrame(() => {
+      drawFrame(currentFrameRef.current);
+      rafIdRef.current = null;
+    });
+  }, [drawFrame]);
+
+  // Direct DOM Phase state updates to avoid React reconciliation during scroll
+  const updatePhaseDOM = useCallback((progress: number) => {
+    const p0 = phase0Ref.current;
+    const p1 = phase1Ref.current;
+    const p2 = phase2Ref.current;
+    const p3 = phase3Ref.current;
+    if (!p0 || !p1 || !p2 || !p3) return;
+
+    let phase = 0;
+    if (progress < 0.22) {
+      phase = 0;
+    } else if (progress < 0.50) {
+      phase = 1;
+    } else if (progress < 0.75) {
+      phase = 2;
+    } else {
+      phase = 3;
+    }
+
+    // Phase 0
+    if (phase === 0) {
+      p0.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+    } else {
+      p0.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+    }
+
+    // Phase 1
+    if (phase === 1) {
+      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+    } else if (phase < 1) {
+      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
+    } else {
+      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+    }
+
+    // Phase 2
+    if (phase === 2) {
+      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+    } else if (phase < 2) {
+      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
+    } else {
+      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+    }
+
+    // Phase 3
+    if (phase === 3) {
+      p3.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+    } else {
+      p3.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
     }
   }, []);
 
-  // Preload images
+  // Initial Progressive Load: Load frame 0 immediately, then initial buffer in background
   useEffect(() => {
     let isMounted = true;
-    const images: HTMLImageElement[] = [];
-    imagesRef.current = images;
 
-    // Load first frame immediately
-    const firstImg = new Image();
-    firstImg.src = getFramePath(1);
-    firstImg.onload = () => {
-      if (!isMounted) return;
-      images[0] = firstImg;
-      setIsInitialReady(true);
-      drawFrame(0);
-    };
-    firstImg.onerror = () => {
+    // Load first frame immediately for instant LCP
+    loadFrame(0).then((img) => {
       if (!isMounted) return;
       setIsInitialReady(true);
-    };
-
-    // Load remaining frames asynchronously
-    for (let i = 2; i <= TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.src = getFramePath(i);
-      img.onload = () => {
-        if (!isMounted) return;
-        images[i - 1] = img;
-      };
-    }
+      if (img) {
+        drawFrame(0);
+      }
+      // Preload initial buffer window (first 20 frames) asynchronously
+      for (let i = 1; i <= 20; i++) {
+        loadFrame(i);
+      }
+    });
 
     return () => {
       isMounted = false;
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
     };
-  }, [drawFrame]);
+  }, [loadFrame, drawFrame]);
 
   // Initial Entrance Animation on Page Load
   useEffect(() => {
@@ -192,24 +326,38 @@ export default function ScrollytellingHero() {
   useEffect(() => {
     let scrollTriggerInstance: any = null;
     let isCancelled = false;
+    let lastWidth = typeof window !== "undefined" ? window.innerWidth : 0;
 
     const resizeCanvas = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
       const width = window.innerWidth;
       const height = window.innerHeight;
+
+      // Check if width actually changed (ignore height-only address bar changes)
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      drawFrame(frameObjRef.current.frame);
+      cachedGradientRef.current.gradient = null;
+      drawFrame(currentFrameRef.current);
     };
 
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+
+    const onResize = () => {
+      const currentWidth = window.innerWidth;
+      // Only recalculate buffer dimensions if width changes or significant desktop resize
+      if (Math.abs(currentWidth - lastWidth) > 5) {
+        lastWidth = currentWidth;
+        resizeCanvas();
+      }
+    };
+
+    window.addEventListener("resize", onResize, { passive: true });
 
     Promise.all([
       import("gsap"),
@@ -225,26 +373,22 @@ export default function ScrollytellingHero() {
         trigger: container,
         start: "top top",
         end: "bottom bottom",
-        scrub: 0.5,
+        scrub: 0.4,
         onUpdate: (self) => {
           const progress = self.progress;
           const targetFrame = Math.min(
             Math.floor(progress * (TOTAL_FRAMES - 1)),
             TOTAL_FRAMES - 1
           );
-          frameObjRef.current.frame = targetFrame;
-          drawFrame(targetFrame);
 
-          // 4 Continuous Narrative Phases
-          if (progress < 0.22) {
-            setActivePhase(0);
-          } else if (progress < 0.50) {
-            setActivePhase(1);
-          } else if (progress < 0.75) {
-            setActivePhase(2);
-          } else {
-            setActivePhase(3);
-          }
+          // Priority progressive loading around active frame
+          preloadSurroundingFrames(targetFrame);
+
+          // Batch draw through rAF
+          scheduleRender(targetFrame);
+
+          // Direct DOM phase updates without triggering React renders
+          updatePhaseDOM(progress);
         },
       });
     }).catch((err) => {
@@ -253,12 +397,12 @@ export default function ScrollytellingHero() {
 
     return () => {
       isCancelled = true;
-      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("resize", onResize);
       if (scrollTriggerInstance) {
         scrollTriggerInstance.kill();
       }
     };
-  }, [drawFrame]);
+  }, [drawFrame, preloadSurroundingFrames, scheduleRender, updatePhaseDOM]);
 
   return (
     <section
@@ -282,11 +426,8 @@ export default function ScrollytellingHero() {
         {/* ACT 01: BRAND REVEAL & FIVE CAPABILITIES (Screen 1 / Phase 0)             */}
         {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 ${
-            activePhase === 0
-              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
-              : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
-          }`}
+          ref={phase0Ref}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
         >
           {/* Cinematic 3D Metallic Silver/Chrome Wordmark */}
           <div className="w-full max-w-4xl sm:max-w-5xl mx-auto py-2 flex items-center justify-center">
@@ -315,13 +456,8 @@ export default function ScrollytellingHero() {
         {/* ACT 02: POSITIONING HEADLINE & CALL TO ACTIONS (Screen 2 / Phase 1)       */}
         {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 ${
-            activePhase === 1
-              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
-              : activePhase < 1
-              ? "opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
-              : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
-          }`}
+          ref={phase1Ref}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
         >
           <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-[4.15rem] font-bold tracking-tight text-[var(--text-primary)] max-w-5xl leading-[1.12] text-balance">
             We build High-converting websites with digital growth solutions
@@ -349,13 +485,8 @@ export default function ScrollytellingHero() {
         {/* ACT 03: OWNERSHIP & SUPPORT (Screen 3 / Phase 2)                          */}
         {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 ${
-            activePhase === 2
-              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
-              : activePhase < 2
-              ? "opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
-              : "opacity-0 -translate-y-12 scale-95 pointer-events-none invisible"
-          }`}
+          ref={phase2Ref}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
         >
           <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-[var(--border)] max-w-3xl shadow-2xl">
             <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] font-bold mb-3 block">
@@ -391,11 +522,8 @@ export default function ScrollytellingHero() {
         {/* ACT 04: FINAL HERO CTA (Screen 4 / Phase 3)                               */}
         {/* ========================================================================= */}
         <div
-          className={`absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 ${
-            activePhase === 3
-              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
-              : "opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
-          }`}
+          ref={phase3Ref}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible"
         >
           <div className="p-8 sm:p-12 bg-[#0a0a0a]/90 backdrop-blur-md border border-[var(--border)] max-w-2xl shadow-2xl">
             <span className="text-[11px] font-mono uppercase tracking-widest text-[#7C3AED] font-bold mb-3 block">

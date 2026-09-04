@@ -142,14 +142,9 @@ export default function GlobalEarthBackground() {
     // - On Tablet / Desktop: Flank gracefully on the right
     const updatePosition = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
-      const aspect = width / height;
 
       if (width < 480) {
         // Narrow & Standard Mobile (320px, 375px, 390px, 414px, 430px)
-        // Scaled to fit comfortably inside the mobile screen with breathing room so the complete round circular globe is visible without edge clipping.
-        // At camera z=5, fov=40, visible half-width is aspect * 5 * tan(20 deg).
-        // A scale between 0.60 - 0.76 ensures the entire circular sphere fits with safe margins.
         const mobileScale = Math.min(Math.max((width / 390) * 0.70, 0.58), 0.78);
         earthGroup.position.set(0.0, -0.05, -0.2);
         earthGroup.scale.setScalar(mobileScale);
@@ -340,8 +335,6 @@ export default function GlobalEarthBackground() {
       const scrollProgress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
 
       // Total rotation over full page journey (approx 1.75 revolutions = 3.5π radians)
-      // Smoothly reveals India -> Middle East/Europe/Africa -> Atlantic -> Americas -> Pacific -> East Asia/Australia
-      // Scrolling up naturally reverses rotation.
       targetRotationY = INITIAL_INDIA_ROTATION_Y + scrollProgress * (Math.PI * 3.5);
     };
 
@@ -358,25 +351,57 @@ export default function GlobalEarthBackground() {
 
     window.addEventListener("mousemove", onMouseMove, { passive: true });
 
-    // --- Responsive Resize Handler ---
+    // --- Responsive Resize Handler (Ignore height-only address bar changes on mobile) ---
+    let lastKnownWidth = window.innerWidth;
+    let lastKnownHeight = window.innerHeight;
+
     const onResize = () => {
       if (!renderer || !camera) return;
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      updatePosition();
+      const currentWidth = window.innerWidth;
+      const currentHeight = window.innerHeight;
+
+      // On mobile browsers, scrolling down collapses address bar (changing height only).
+      // We only re-project and re-scale if width changes or significant height changes (>150px e.g. orientation flip).
+      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 5;
+      const orientationChanged = Math.abs(currentHeight - lastKnownHeight) > 150;
+
+      if (widthChanged || orientationChanged) {
+        lastKnownWidth = currentWidth;
+        lastKnownHeight = currentHeight;
+
+        camera.aspect = currentWidth / currentHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(currentWidth, currentHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        updatePosition();
+      }
       handleScroll();
     };
 
     window.addEventListener("resize", onResize, { passive: true });
 
-    // --- Render Loop (Lerped Scroll-Driven Rotation & Star Twinkle) ---
-    let animationFrameId: number;
+    // --- Visibility & Render Loop ---
+    let animationFrameId: number | null = null;
+    let isVisible = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        isVisible = entry.isIntersecting;
+        if (isVisible && animationFrameId === null) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(container);
 
     const animate = (time: number) => {
+      if (!isVisible) {
+        animationFrameId = null;
+        return;
+      }
+
       const timeSeconds = time * 0.001;
 
       // Update star twinkle animation time
@@ -402,7 +427,10 @@ export default function GlobalEarthBackground() {
 
     // --- Cleanup on Unmount ---
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      observer.disconnect();
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
