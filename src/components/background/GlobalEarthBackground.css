@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Global Photorealistic 3D Earth Background - Three.js Dark Cinematic Realism
+   Global Photorealistic 3D Earth Background - Three.js Dark Space Realism
    ========================================================================== */
 
 .global-earth-bg-layer {
@@ -9,10 +9,9 @@
   height: 100vh;
   height: 100dvh;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
   overflow: hidden;
-  opacity: 0.85;
-  mix-blend-mode: screen;
+  opacity: 0.95;
   contain: strict;
   will-change: opacity;
 }
@@ -28,12 +27,12 @@
 
 @media (max-width: 768px) {
   .global-earth-bg-layer {
-    opacity: 0.60;
+    opacity: 0.75;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .global-earth-bg-layer {
-    opacity: 0.40;
+    opacity: 0.50;
   }
 }
