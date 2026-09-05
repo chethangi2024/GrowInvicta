@@ -3,14 +3,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import * as THREE from "three";
 import CinematicChromeTitle from "./CinematicChromeTitle";
-
-const TOTAL_FRAMES = 300;
-
-function getFramePath(index: number): string {
-  const padded = String(index).padStart(3, "0");
-  return `/hero-frames/ezgif-frame-${padded}.jpg`;
-}
 
 const SERVICES = [
   { name: "WEBSITE DESIGN" },
@@ -20,7 +14,9 @@ const SERVICES = [
   { name: "CREATIVE & BRANDING" },
 ];
 
-// Persistent Scroll to Explore Indicator Overlay
+// Initial Longitude of India (Bengaluru ~77.6°E) facing the camera directly
+const INITIAL_INDIA_ROT_Y = -1.35;
+
 function ScrollToExplore({
   className = "absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2",
   innerRef,
@@ -48,11 +44,7 @@ function ScrollToExplore({
 
 export default function ScrollytellingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesMapRef = useRef<Map<number, HTMLImageElement>>(new Map());
-  const loadingSetRef = useRef<Set<number>>(new Set());
-  const currentFrameRef = useRef<number>(0);
-  const rafIdRef = useRef<number | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   const phase0Ref = useRef<HTMLDivElement>(null);
   const phase1Ref = useRef<HTMLDivElement>(null);
@@ -61,153 +53,6 @@ export default function ScrollytellingHero() {
 
   const capabilityRefs = useRef<(HTMLElement | null)[]>([]);
   const scrollCueRef = useRef<HTMLDivElement | null>(null);
-
-  const [isInitialReady, setIsInitialReady] = useState<boolean>(true);
-  const cachedGradientRef = useRef<{
-    width: number;
-    height: number;
-    gradient: CanvasGradient | null;
-  }>({ width: 0, height: 0, gradient: null });
-
-  // Priority windowed frame loader
-  const loadFrame = useCallback((frameIndex: number): Promise<HTMLImageElement | null> => {
-    const clamped = Math.min(Math.max(frameIndex, 0), TOTAL_FRAMES - 1);
-    if (imagesMapRef.current.has(clamped)) {
-      return Promise.resolve(imagesMapRef.current.get(clamped)!);
-    }
-    if (loadingSetRef.current.has(clamped)) {
-      return Promise.resolve(null);
-    }
-
-    loadingSetRef.current.add(clamped);
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = getFramePath(clamped + 1);
-      img.onload = () => {
-        imagesMapRef.current.set(clamped, img);
-        loadingSetRef.current.delete(clamped);
-        resolve(img);
-      };
-      img.onerror = () => {
-        loadingSetRef.current.delete(clamped);
-        resolve(null);
-      };
-    });
-  }, []);
-
-  // Preload dynamic window around target frame
-  const preloadSurroundingFrames = useCallback((targetFrame: number) => {
-    // Window of ±15 frames around target, loading nearest frames first
-    const windowSize = 15;
-    for (let offset = 1; offset <= windowSize; offset++) {
-      const next = targetFrame + offset;
-      const prev = targetFrame - offset;
-      if (next < TOTAL_FRAMES && !imagesMapRef.current.has(next) && !loadingSetRef.current.has(next)) {
-        loadFrame(next);
-      }
-      if (prev >= 0 && !imagesMapRef.current.has(prev) && !loadingSetRef.current.has(prev)) {
-        loadFrame(prev);
-      }
-    }
-  }, [loadFrame]);
-
-  // Find nearest available loaded frame
-  const getNearestLoadedFrame = useCallback((targetFrame: number): HTMLImageElement | null => {
-    if (imagesMapRef.current.has(targetFrame)) {
-      return imagesMapRef.current.get(targetFrame)!;
-    }
-    // Search outwards for closest cached frame to prevent any blank flicker
-    for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
-      const prev = targetFrame - offset;
-      if (prev >= 0 && imagesMapRef.current.has(prev)) {
-        return imagesMapRef.current.get(prev)!;
-      }
-      const next = targetFrame + offset;
-      if (next < TOTAL_FRAMES && imagesMapRef.current.has(next)) {
-        return imagesMapRef.current.get(next)!;
-      }
-    }
-    return imagesMapRef.current.get(0) || null;
-  }, []);
-
-  // Draw frame on canvas with aspect ratio cover and crisp rendering
-  const drawFrame = useCallback((frameIndex: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
-    const clampedIndex = Math.min(Math.max(Math.round(frameIndex), 0), TOTAL_FRAMES - 1);
-    const img = getNearestLoadedFrame(clampedIndex);
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear background to pure near-black
-    ctx.fillStyle = "#07080A";
-    ctx.fillRect(0, 0, width, height);
-
-    if (img && img.complete && img.naturalWidth > 0) {
-      const imgRatio = img.naturalWidth / img.naturalHeight;
-      const canvasRatio = width / height;
-
-      let drawWidth = width;
-      let drawHeight = height;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (canvasRatio > imgRatio) {
-        drawWidth = width;
-        drawHeight = width / imgRatio;
-        offsetX = 0;
-        offsetY = (height - drawHeight) / 2;
-      } else {
-        drawHeight = height;
-        drawWidth = height * imgRatio;
-        offsetX = (width - drawWidth) / 2;
-        offsetY = 0;
-      }
-
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-
-      // Cached Vignette overlay for seamless edge blending into #07080A
-      if (
-        !cachedGradientRef.current.gradient ||
-        cachedGradientRef.current.width !== width ||
-        cachedGradientRef.current.height !== height
-      ) {
-        const gradient = ctx.createRadialGradient(
-          width / 2,
-          height / 2,
-          Math.min(width, height) * 0.28,
-          width / 2,
-          height / 2,
-          Math.max(width, height) * 0.65
-        );
-        gradient.addColorStop(0, "rgba(7, 8, 10, 0)");
-        gradient.addColorStop(0.75, "rgba(7, 8, 10, 0.45)");
-        gradient.addColorStop(1, "rgba(7, 8, 10, 0.90)");
-        cachedGradientRef.current = { width, height, gradient };
-      }
-
-      if (cachedGradientRef.current.gradient) {
-        ctx.fillStyle = cachedGradientRef.current.gradient;
-        ctx.fillRect(0, 0, width, height);
-      }
-    }
-  }, [getNearestLoadedFrame]);
-
-  // Request Animation Frame batched render
-  const scheduleRender = useCallback((targetFrame: number) => {
-    currentFrameRef.current = targetFrame;
-    if (rafIdRef.current !== null) return;
-    rafIdRef.current = requestAnimationFrame(() => {
-      drawFrame(currentFrameRef.current);
-      rafIdRef.current = null;
-    });
-  }, [drawFrame]);
 
   // Direct DOM Phase state updates to avoid React reconciliation during scroll
   const updatePhaseDOM = useCallback((progress: number) => {
@@ -218,82 +63,426 @@ export default function ScrollytellingHero() {
     if (!p0 || !p1 || !p2 || !p3) return;
 
     let phase = 0;
-    if (progress < 0.22) {
+    if (progress < 0.26) {
       phase = 0;
-    } else if (progress < 0.50) {
+    } else if (progress < 0.54) {
       phase = 1;
-    } else if (progress < 0.75) {
+    } else if (progress < 0.80) {
       phase = 2;
     } else {
       phase = 3;
     }
 
-    // Phase 0
+    // Phase 0: Brand Reveal & 5 Capabilities
     if (phase === 0) {
-      p0.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+      p0.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
     } else {
-      p0.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+      p0.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
     }
 
-    // Phase 1
+    // Phase 1: Core Value Proposition & CTAs
     if (phase === 1) {
-      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+      p1.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
     } else if (phase < 1) {
-      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
+      p1.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
     } else {
-      p1.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+      p1.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
     }
 
-    // Phase 2
+    // Phase 2: Built Around You & Asset Autonomy
     if (phase === 2) {
-      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+      p2.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
     } else if (phase < 2) {
-      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
+      p2.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
     } else {
-      p2.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
+      p2.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 -translate-y-12 scale-95 pointer-events-none invisible";
     }
 
-    // Phase 3
+    // Phase 3: Final Hero Transition & Sprint CTA
     if (phase === 3) {
-      p3.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
+      p3.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible";
     } else {
-      p3.className = "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
+      p3.className =
+        "absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto transition-all duration-700 opacity-0 translate-y-12 scale-95 pointer-events-none invisible";
     }
   }, []);
 
-  // Initial Progressive Load: Load frame 0 immediately, then initial buffer in background
+  // Three.js High-Performance Hero WebGL Scene & GSAP Scroll integration
   useEffect(() => {
-    let isMounted = true;
+    const canvasContainer = canvasContainerRef.current;
+    if (!canvasContainer) return;
 
-    // Load first frame immediately for instant LCP
-    loadFrame(0).then((img) => {
-      if (!isMounted) return;
-      setIsInitialReady(true);
-      if (img) {
-        drawFrame(0);
-      }
-      // Preload initial buffer window (first 20 frames) asynchronously
-      for (let i = 1; i <= 20; i++) {
-        loadFrame(i);
-      }
+    let isDisposed = false;
+    let animationFrameId: number | null = null;
+    let scrollTriggerInstance: any = null;
+
+    // --- Scene & Camera Setup ---
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      42,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 0, 5.0);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
     });
 
-    return () => {
-      isMounted = false;
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x07080a, 0);
+    canvasContainer.appendChild(renderer.domElement);
+
+    // --- Starfield Background (Deep Space Ambience) ---
+    const starCount = 320;
+    const starGeometry = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const starSizes = new Float32Array(starCount);
+    const starPhases = new Float32Array(starCount);
+
+    for (let i = 0; i < starCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const radius = 50 + Math.random() * 70;
+
+      starPositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      starPositions[i * 3 + 2] = -Math.abs(radius * Math.cos(phi)) - 12;
+
+      starSizes[i] = Math.random() * 1.6 + 0.8;
+      starPhases[i] = Math.random() * Math.PI * 2;
+    }
+
+    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    starGeometry.setAttribute("aSize", new THREE.BufferAttribute(starSizes, 1));
+    starGeometry.setAttribute("aPhase", new THREE.BufferAttribute(starPhases, 1));
+
+    const starMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        attribute float aSize;
+        attribute float aPhase;
+        uniform float uTime;
+        varying float vAlpha;
+
+        void main() {
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          float twinkle = sin(uTime * 1.8 + aPhase) * 0.5 + 0.5;
+          vAlpha = twinkle * 0.45;
+          gl_PointSize = aSize * (110.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+        varying float vAlpha;
+
+        void main() {
+          vec2 center = gl_PointCoord - vec2(0.5);
+          float dist = length(center);
+          if (dist > 0.5) discard;
+          float intensity = smoothstep(0.5, 0.05, dist);
+          vec3 starColor = mix(vec3(0.9, 0.95, 1.0), vec3(0.7, 0.8, 0.98), dist * 2.0);
+          gl_FragColor = vec4(starColor, intensity * vAlpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const starField = new THREE.Points(starGeometry, starMaterial);
+    scene.add(starField);
+
+    // --- Satellite Textures for High-Fidelity Earth ---
+    const textureLoader = new THREE.TextureLoader();
+    const setupTexture = (tex: THREE.Texture) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy() || 8, 8);
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = true;
+    };
+
+    const dayMap = textureLoader.load("/textures/earth/earth_atmos_2048.jpg", setupTexture);
+    const lightsMap = textureLoader.load("/textures/earth/earth_lights_2048.png", setupTexture);
+    const normalMap = textureLoader.load("/textures/earth/earth_normal_2048.jpg", setupTexture);
+    const specularMap = textureLoader.load("/textures/earth/earth_specular_2048.jpg", setupTexture);
+
+    // --- 3D Earth Pivot Group ---
+    const earthGroup = new THREE.Group();
+    scene.add(earthGroup);
+
+    // Initial positioning presets based on viewport width
+    const getBaseTransform = (w: number) => {
+      if (w < 480) {
+        // Narrow & Standard Mobile (320px - 479px)
+        const scale = Math.min(Math.max((w / 390) * 0.52, 0.44), 0.56);
+        return { x: 0.0, y: -0.16, z: -0.2, scale };
+      } else if (w < 768) {
+        // Large Mobile / Phablets (480px - 767px)
+        return { x: 0.0, y: -0.12, z: -0.15, scale: 0.62 };
+      } else if (w < 1024) {
+        // Tablet (768px - 1023px)
+        return { x: 0.85, y: 0.05, z: 0.0, scale: 0.85 };
+      } else {
+        // Desktop / Large screens (1024px+)
+        return { x: 1.45, y: 0.05, z: 0.2, scale: 1.02 };
       }
     };
-  }, [loadFrame, drawFrame]);
 
-  // Initial Entrance Animation on Page Load
-  useEffect(() => {
+    let baseTransform = getBaseTransform(window.innerWidth);
+    earthGroup.position.set(baseTransform.x, baseTransform.y, baseTransform.z);
+    earthGroup.scale.setScalar(baseTransform.scale);
+
+    // Earth's natural axial tilt (~23.4 degrees)
+    earthGroup.rotation.z = -0.41;
+    earthGroup.rotation.x = 0.12;
+
+    // --- Custom Photorealistic Earth Surface Shader ---
+    const earthGeometry = new THREE.SphereGeometry(1.0, 64, 64);
+    const earthMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uDayMap: { value: dayMap },
+        uLightsMap: { value: lightsMap },
+        uNormalMap: { value: normalMap },
+        uSpecularMap: { value: specularMap },
+        uLightDir: { value: new THREE.Vector3(-0.75, 0.42, 0.52).normalize() },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec3 vViewDir;
+
+        void main() {
+          vUv = uv;
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vPosition = mvPosition.xyz;
+          vViewDir = normalize(-mvPosition.xyz);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+
+        uniform sampler2D uDayMap;
+        uniform sampler2D uLightsMap;
+        uniform sampler2D uNormalMap;
+        uniform sampler2D uSpecularMap;
+        uniform vec3 uLightDir;
+
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec3 vViewDir;
+
+        void main() {
+          vec3 normalMapValue = texture2D(uNormalMap, vUv).rgb * 2.0 - 1.0;
+          vec3 N = normalize(vNormal + normalMapValue * 0.08);
+          float specMask = texture2D(uSpecularMap, vUv).r;
+
+          float NdotL = dot(N, uLightDir);
+          float sunIntensity = smoothstep(-0.16, 0.35, NdotL);
+          float nightFactor = 1.0 - smoothstep(-0.14, 0.20, NdotL);
+
+          vec3 dayTex = texture2D(uDayMap, vUv).rgb;
+          float terrainLum = dot(dayTex, vec3(0.299, 0.587, 0.114));
+
+          vec3 oceanDeep = vec3(0.012, 0.024, 0.048);
+          vec3 oceanShallow = vec3(0.022, 0.045, 0.085);
+          vec3 oceanColor = mix(oceanDeep, oceanShallow, sunIntensity * 0.6);
+
+          vec3 landColor = mix(
+            vec3(0.045, 0.052, 0.062),
+            vec3(0.085, 0.098, 0.115),
+            terrainLum
+          );
+
+          vec3 surfaceBase = mix(landColor, oceanColor, specMask);
+          vec3 surfaceLit = surfaceBase * (0.34 + 1.15 * sunIntensity);
+
+          vec3 halfDir = normalize(uLightDir + vViewDir);
+          float spec = pow(max(dot(N, halfDir), 0.0), 32.0) * specMask * sunIntensity;
+          vec3 specColor = vec3(0.85, 0.92, 1.0) * spec * 0.65;
+
+          vec3 cityLights = texture2D(uLightsMap, vUv).rgb;
+          vec3 cityGlow = cityLights * vec3(1.0, 0.82, 0.50) * nightFactor * 1.5;
+
+          float NdotV = dot(N, vViewDir);
+          float limbFresnel = pow(1.0 - max(NdotV, 0.0), 3.2);
+          vec3 limbAtmosphere = vec3(0.25, 0.55, 0.95) * limbFresnel * (0.25 + 0.8 * sunIntensity);
+
+          vec3 finalColor = surfaceLit + specColor + cityGlow + limbAtmosphere;
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `,
+    });
+
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    earthMesh.rotation.y = INITIAL_INDIA_ROT_Y;
+    earthGroup.add(earthMesh);
+
+    // --- Atmospheric Glow Rim Shell ---
+    const atmosGeometry = new THREE.SphereGeometry(1.035, 64, 64);
+    const atmosMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uLightDir: { value: new THREE.Vector3(-0.75, 0.42, 0.52).normalize() },
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec3 vViewDir;
+
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vPosition = mvPosition.xyz;
+          vViewDir = normalize(-mvPosition.xyz);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+        uniform vec3 uLightDir;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        varying vec3 vViewDir;
+
+        void main() {
+          float NdotV = max(dot(vNormal, vViewDir), 0.0);
+          float rim = pow(1.0 - NdotV, 3.8);
+          float sunSide = smoothstep(-0.25, 0.4, dot(vNormal, uLightDir));
+          vec3 atmosphereColor = mix(
+            vec3(0.08, 0.25, 0.65),
+            vec3(0.35, 0.68, 1.0),
+            sunSide
+          );
+          float alpha = rim * (0.3 + 0.7 * sunSide) * 0.85;
+          gl_FragColor = vec4(atmosphereColor, alpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+    });
+
+    const atmosMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
+    earthGroup.add(atmosMesh);
+
+    // --- Smooth Interactive Orbital Physics ---
+    let scrollProgress = 0;
+    const targetScrollProgress = { current: 0 };
+    const mousePos = { x: 0, y: 0 };
+    const targetMousePos = { x: 0, y: 0 };
+
+    const onMouseMove = (e: MouseEvent) => {
+      targetMousePos.x = (e.clientX / window.innerWidth) * 2 - 1;
+      targetMousePos.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+
+    // --- Dynamic Resize Handler ---
+    const onResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      const newDpr = Math.min(window.devicePixelRatio || 1, 2);
+      renderer.setPixelRatio(newDpr);
+      renderer.setSize(width, height);
+
+      baseTransform = getBaseTransform(width);
+      earthGroup.position.set(baseTransform.x, baseTransform.y, baseTransform.z);
+      earthGroup.scale.setScalar(baseTransform.scale);
+    };
+    window.addEventListener("resize", onResize);
+
+    // --- GSAP ScrollTrigger Integration ---
+    Promise.all([
+      import("gsap"),
+      import("gsap/dist/ScrollTrigger")
+    ]).then(([{ gsap }, { ScrollTrigger }]) => {
+      if (isDisposed) return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      scrollTriggerInstance = ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 0.5,
+        onUpdate: (self) => {
+          if (isDisposed) return;
+          const p = self.progress;
+          targetScrollProgress.current = p;
+          updatePhaseDOM(p);
+        },
+      });
+    });
+
+    // --- Main Render Loop ---
+    let lastTime = performance.now();
+    let earthAutoRotation = INITIAL_INDIA_ROT_Y;
+
+    const animate = (currentTime: number) => {
+      if (isDisposed) return;
+
+      const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+
+      // Slow idle rotation + deterministic scroll rotation (advances down, reverses up)
+      earthAutoRotation += delta * 0.035;
+      scrollProgress += (targetScrollProgress.current - scrollProgress) * 0.1;
+
+      // Smooth mouse parallax
+      mousePos.x += (targetMousePos.x - mousePos.x) * 0.04;
+      mousePos.y += (targetMousePos.y - mousePos.y) * 0.04;
+
+      // Update Starfield twinkle
+      starMaterial.uniforms.uTime.value = currentTime * 0.001;
+
+      // Apply Earth rotation with scroll linkage
+      const scrollRotationOffset = scrollProgress * 1.75;
+      earthMesh.rotation.y = earthAutoRotation + scrollRotationOffset;
+
+      // Subtle dynamic position & scale progression during scroll
+      const progressScale = baseTransform.scale * (1.0 - scrollProgress * 0.18);
+      earthGroup.scale.setScalar(progressScale);
+
+      earthGroup.position.x = baseTransform.x + mousePos.x * 0.08;
+      earthGroup.position.y = baseTransform.y + mousePos.y * 0.06 - scrollProgress * 0.15;
+      earthGroup.position.z = baseTransform.z - scrollProgress * 0.4;
+
+      renderer.render(scene, camera);
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    // Entrance Animation for Header Elements
     import("gsap").then(({ gsap }) => {
-      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReduced) return;
-
       const masterTl = gsap.timeline();
-
       const validCapEls = capabilityRefs.current.filter(Boolean);
       if (validCapEls.length > 0) {
         masterTl.fromTo(
@@ -310,7 +499,6 @@ export default function ScrollytellingHero() {
         );
       }
 
-      // Reveal Scroll to Explore Indicator
       if (scrollCueRef.current) {
         masterTl.fromTo(
           scrollCueRef.current,
@@ -320,89 +508,35 @@ export default function ScrollytellingHero() {
         );
       }
     });
-  }, []);
-
-  // Setup GSAP ScrollTrigger safely via dynamic import
-  useEffect(() => {
-    let scrollTriggerInstance: any = null;
-    let isCancelled = false;
-    let lastWidth = typeof window !== "undefined" ? window.innerWidth : 0;
-
-    const resizeCanvas = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-
-      // Check if width actually changed (ignore height-only address bar changes)
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      cachedGradientRef.current.gradient = null;
-      drawFrame(currentFrameRef.current);
-    };
-
-    resizeCanvas();
-
-    const onResize = () => {
-      const currentWidth = window.innerWidth;
-      // Only recalculate buffer dimensions if width changes or significant desktop resize
-      if (Math.abs(currentWidth - lastWidth) > 5) {
-        lastWidth = currentWidth;
-        resizeCanvas();
-      }
-    };
-
-    window.addEventListener("resize", onResize, { passive: true });
-
-    Promise.all([
-      import("gsap"),
-      import("gsap/dist/ScrollTrigger")
-    ]).then(([{ gsap }, { ScrollTrigger }]) => {
-      if (isCancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
-
-      const container = containerRef.current;
-      if (!container) return;
-
-      scrollTriggerInstance = ScrollTrigger.create({
-        trigger: container,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 0.4,
-        onUpdate: (self) => {
-          const progress = self.progress;
-          const targetFrame = Math.min(
-            Math.floor(progress * (TOTAL_FRAMES - 1)),
-            TOTAL_FRAMES - 1
-          );
-
-          // Priority progressive loading around active frame
-          preloadSurroundingFrames(targetFrame);
-
-          // Batch draw through rAF
-          scheduleRender(targetFrame);
-
-          // Direct DOM phase updates without triggering React renders
-          updatePhaseDOM(progress);
-        },
-      });
-    }).catch((err) => {
-      console.warn("GSAP ScrollTrigger initialization fallback:", err);
-    });
 
     return () => {
-      isCancelled = true;
-      window.removeEventListener("resize", onResize);
+      isDisposed = true;
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
       if (scrollTriggerInstance) {
         scrollTriggerInstance.kill();
       }
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", onResize);
+
+      if (canvasContainer && renderer.domElement && canvasContainer.contains(renderer.domElement)) {
+        canvasContainer.removeChild(renderer.domElement);
+      }
+
+      starGeometry.dispose();
+      starMaterial.dispose();
+      earthGeometry.dispose();
+      earthMaterial.dispose();
+      atmosGeometry.dispose();
+      atmosMaterial.dispose();
+      dayMap.dispose();
+      lightsMap.dispose();
+      normalMap.dispose();
+      specularMap.dispose();
+      renderer.dispose();
     };
-  }, [drawFrame, preloadSurroundingFrames, scheduleRender, updatePhaseDOM]);
+  }, [updatePhaseDOM]);
 
   return (
     <section
@@ -411,16 +545,15 @@ export default function ScrollytellingHero() {
     >
       {/* Sticky Viewport Container */}
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex items-center justify-center pointer-events-none">
-        {/* Render Canvas */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none transition-opacity duration-700"
-          style={{ opacity: isInitialReady ? 1 : 0 }}
+        {/* Three.js Dedicated WebGL Scene Container */}
+        <div
+          ref={canvasContainerRef}
+          className="absolute inset-0 w-full h-full z-0 pointer-events-none"
         />
 
-        {/* Ambient Vignettes */}
+        {/* Ambient Spatial Vignettes (Contrasting Backdrop) */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#07080A] via-transparent to-[#07080A]/80 z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#07080A]/70 via-transparent to-[#07080A]/70 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#07080A]/60 via-transparent to-[#07080A]/60 z-10 pointer-events-none" />
 
         {/* ========================================================================= */}
         {/* ACT 01: BRAND REVEAL & FIVE CAPABILITIES (Screen 1 / Phase 0)             */}
@@ -429,9 +562,9 @@ export default function ScrollytellingHero() {
           ref={phase0Ref}
           className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-5xl mx-auto transition-all duration-700 opacity-100 translate-y-0 scale-100 pointer-events-auto visible"
         >
-          {/* Cinematic 3D Metallic Silver/Chrome Wordmark */}
-          <div className="w-full max-w-4xl sm:max-w-5xl mx-auto py-2 flex items-center justify-center">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold font-poppins tracking-tight uppercase select-none leading-none">
+          {/* Cinematic 3D Specular Chrome Wordmark */}
+          <div className="w-full max-w-4xl sm:max-w-5xl mx-auto py-2 flex items-center justify-center overflow-hidden px-2">
+            <h1 className="text-[clamp(1.85rem,8vw,5.5rem)] font-bold font-poppins tracking-tight uppercase select-none leading-none max-w-full">
               <CinematicChromeTitle text="GROW INVICTA" />
             </h1>
           </div>
@@ -441,10 +574,12 @@ export default function ScrollytellingHero() {
             {SERVICES.map((srv, idx) => (
               <div
                 key={srv.name}
-                ref={(el) => { capabilityRefs.current[idx] = el; }}
+                ref={(el) => {
+                  capabilityRefs.current[idx] = el;
+                }}
                 className="group inline-block cursor-default py-1 transition-all duration-300 ease-out hover:scale-105"
               >
-                <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] transition-all duration-200">
+                <span className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-200">
                   {srv.name}
                 </span>
               </div>
@@ -467,14 +602,14 @@ export default function ScrollytellingHero() {
           <div className="mt-10 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
             <Link
               href="/portfolio"
-              className="btn-primary w-full sm:w-auto cursor-pointer"
+              className="btn-primary w-full sm:w-auto cursor-pointer font-mono text-xs"
             >
               <span>View Portfolio</span>
               <ArrowUpRight className="w-4 h-4" />
             </Link>
             <Link
               href="/solutions"
-              className="btn-secondary w-full sm:w-auto cursor-pointer"
+              className="btn-secondary w-full sm:w-auto cursor-pointer font-mono text-xs"
             >
               <span>Explore Solutions</span>
             </Link>
