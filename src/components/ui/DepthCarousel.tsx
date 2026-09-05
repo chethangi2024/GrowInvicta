@@ -253,12 +253,12 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       // Responsive scale calculation strictly bounded by container width
       let calculatedScale = 1;
       if (w < 480) {
-        // Narrow and standard mobile (320px - 479px)
-        const availableW = Math.max(w - 32, 260);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.40, 0.68);
+        // Narrow and standard mobile (320px - 479px) - ensure active card fits with safe margins
+        const availableW = Math.max(w - 24, 240);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.38, 0.62);
       } else if (w < 640) {
-        const availableW = Math.max(w - 48, 320);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.52, 0.78);
+        const availableW = Math.max(w - 36, 300);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.48, 0.74);
       } else if (w < 1024) {
         calculatedScale = clamp((w - 60) / (cfg.cardWidth + 120), 0.65, 0.95);
       } else {

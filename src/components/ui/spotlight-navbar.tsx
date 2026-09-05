@@ -162,14 +162,14 @@ export function SpotlightNavbar({
           className
         )}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between pointer-events-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between pointer-events-auto">
           {/* Logo Area */}
           <Link
             href="/"
-            className="flex items-center gap-2 group relative py-1"
+            className="flex items-center gap-2 group relative py-1 shrink-0"
             aria-label="Grow Invicta Home"
           >
-            <div className="relative h-7 w-[138px] sm:h-9 sm:w-[178px] shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
+            <div className="relative h-6 w-[124px] sm:h-9 sm:w-[178px] shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
               <Image
                 src="/brand/grow-invicta-logo-color.webp"
                 alt="Grow Invicta"
@@ -350,7 +350,7 @@ export function SpotlightNavbar({
           </div>
 
           {/* Mobile Right Quick Triggers */}
-          <div className="flex items-center lg:hidden gap-2">
+          <div className="flex items-center lg:hidden gap-1.5 shrink-0">
             <Link
               href="/faq"
               aria-label="Frequently Asked Questions"
@@ -362,7 +362,7 @@ export function SpotlightNavbar({
               href="/contact?action=quote"
               variant="primary"
               size="sm"
-              className="text-[10px] font-mono px-2.5 py-1 whitespace-nowrap shrink-0"
+              className="text-[10px] font-mono px-2 py-1 whitespace-nowrap shrink-0"
             >
               GET QUOTE
             </AnimatedButton>
