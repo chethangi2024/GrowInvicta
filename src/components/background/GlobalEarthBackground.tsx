@@ -26,9 +26,25 @@ export default function GlobalEarthBackground() {
     // --- Scene & Camera Setup ---
     const scene = new THREE.Scene();
 
+    const initialWidth = window.innerWidth;
+    const initialHeight = window.innerHeight;
+    const initialAspect = initialWidth / initialHeight;
+
+    // Fixed horizontal FOV for mobile (~26.5 deg) keeps Earth width strictly proportional to viewport width
+    // and 100% immune to viewport height / mobile address bar expansion/collapse
+    const TARGET_MOBILE_HFOV_RAD = 0.463;
+
+    const computeCameraFov = (w: number, h: number) => {
+      if (w < 768) {
+        const aspect = w / h;
+        return 2 * Math.atan(Math.tan(TARGET_MOBILE_HFOV_RAD / 2) / aspect) * (180 / Math.PI);
+      }
+      return 40; // Desktop exact original FOV preserved
+    };
+
     const camera = new THREE.PerspectiveCamera(
-      40,
-      window.innerWidth / window.innerHeight,
+      computeCameraFov(initialWidth, initialHeight),
+      initialAspect,
       0.1,
       1000
     );
@@ -140,9 +156,8 @@ export default function GlobalEarthBackground() {
 
       if (width < 768) {
         // Mobile viewports (320px - 767px)
-        // At 390px width, scale ~0.84 provides ~28px lateral clearance.
-        // Clamp scale so Earth is always prominent yet comfortably contained.
-        const mobileScale = Math.min(Math.max((width / 390) * 0.84, 0.70), 1.05);
+        // Prominent size matching green markings: occupies ~85% of mobile width with comfortable ~24-32px lateral margins
+        const mobileScale = Math.min(Math.max((width / 390) * 0.98, 0.88), 1.15);
         earthGroup.position.set(0.0, 0.0, -0.2);
         earthGroup.scale.setScalar(mobileScale);
       } else if (width < 1200) {
@@ -308,16 +323,19 @@ export default function GlobalEarthBackground() {
 
       // On mobile browsers, vertical scrolling causes the URL address bar to appear/disappear,
       // changing innerHeight by 50-100px.
-      // We only update camera projection & renderer size when width actually changes or on major orientation change.
-      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 2;
-      const heightChanged = Math.abs(currentHeight - lastKnownHeight) > 120;
+      // We strictly ignore height changes on mobile so vertical scrolling NEVER triggers camera projection or scale changes.
+      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 4;
+      const isDesktop = currentWidth >= 768;
+      const heightChanged = isDesktop && Math.abs(currentHeight - lastKnownHeight) > 100;
 
       if (widthChanged || heightChanged) {
         lastKnownWidth = currentWidth;
         lastKnownHeight = currentHeight;
 
         camera.aspect = currentWidth / currentHeight;
+        camera.fov = computeCameraFov(currentWidth, currentHeight);
         camera.updateProjectionMatrix();
+
         renderer.setSize(currentWidth, currentHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         updatePosition();

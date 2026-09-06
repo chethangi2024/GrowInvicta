@@ -15,7 +15,8 @@
   -webkit-user-select: none;
   cursor: grab;
   padding: 10px 0;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .depth-carousel:active {
@@ -37,19 +38,19 @@
 
 @media (max-width: 768px) {
   .depth-carousel__stage {
-    height: 290px;
+    height: 270px;
   }
   .depth-carousel {
-    min-height: 420px;
+    min-height: 410px;
   }
 }
 
 @media (max-width: 480px) {
   .depth-carousel__stage {
-    height: 240px;
+    height: 220px;
   }
   .depth-carousel {
-    min-height: 390px;
+    min-height: 370px;
   }
 }
 
@@ -223,6 +224,19 @@
   }
 }
 
+@media (max-width: 639px) {
+  .depth-carousel__active-info-panel {
+    max-width: 440px;
+    margin-top: 14px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .depth-carousel__active-info-panel a {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Bottom Controls */
 .depth-carousel__controls {
   position: relative;
@@ -232,6 +246,13 @@
   justify-content: center;
   gap: 14px;
   margin-top: 18px;
+}
+
+@media (max-width: 639px) {
+  .depth-carousel__controls {
+    margin-top: 14px;
+    gap: 10px;
+  }
 }
 
 .depth-carousel__arrow {

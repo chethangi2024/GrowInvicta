@@ -123,23 +123,28 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     const sc = scaleRef.current;
     const containerW = containerWidthRef.current;
 
-    // Adapt visible cards and spread for tablet/mobile to prevent horizontal clipping
+    // Adapt visible cards, spread, depth and tilt for tablet/mobile
+    // Mobile (< 640px): Symmetrically centered depth stack with zero lateral drift or off-screen protrusion
     let maxVisible = cfg.visibleCards;
     let actualSpread = cfg.spread;
     let actualDepth = cfg.depth;
+    let actualTilt = cfg.tilt;
 
-    if (containerW < 480) {
+    if (containerW < 640) {
       maxVisible = 1;
-      actualSpread = Math.min(16, cfg.spread * 0.18);
-      actualDepth = Math.min(100, cfg.depth * 0.45);
-    } else if (containerW < 640) {
-      maxVisible = 1.2;
-      actualSpread = Math.min(24, cfg.spread * 0.26);
-      actualDepth = Math.min(120, cfg.depth * 0.55);
+      actualSpread = 0; // Strictly centered along X axis on mobile (no lateral drift or off-screen protrusion)
+      actualDepth = 80;
+      actualTilt = 0;   // Keep front and behind cards planar to prevent 3D rotation edge-clipping
     } else if (containerW < 1024) {
-      maxVisible = 2.5;
-      actualSpread = Math.min(60, cfg.spread * 0.7);
-      actualDepth = Math.min(180, cfg.depth * 0.85);
+      maxVisible = 2.0;
+      actualSpread = Math.min(45, cfg.spread * 0.5);
+      actualDepth = Math.min(150, cfg.depth * 0.7);
+      actualTilt = cfg.tilt * 0.65;
+    } else {
+      maxVisible = cfg.visibleCards;
+      actualSpread = cfg.spread;
+      actualDepth = cfg.depth;
+      actualTilt = cfg.tilt;
     }
 
     for (let i = 0; i < n; i++) {
@@ -158,7 +163,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
 
       const tz = -actualDepth * d;
       const tx = dir * actualSpread * d;
-      const ry = dir * cfg.tilt * clamp(d, -1, 1);
+      const ry = dir * actualTilt * clamp(d, -1, 1);
 
       let opacity = d < 0 ? Math.max(0, 1 + d * 1.5) : 1;
       if (!shown) opacity = 0;
@@ -253,12 +258,12 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       // Responsive scale calculation strictly bounded by container width
       let calculatedScale = 1;
       if (w < 480) {
-        // Narrow and standard mobile (320px - 479px) - ensure active card fits with safe margins
-        const availableW = Math.max(w - 24, 240);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.38, 0.62);
+        // Mobile viewports (320px - 479px) - ensure active card fits cleanly with ~24-32px margins
+        const availableW = Math.min(w - 24, 380);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.44, 0.60);
       } else if (w < 640) {
-        const availableW = Math.max(w - 36, 300);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.48, 0.74);
+        const availableW = Math.min(w - 32, 480);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.52, 0.72);
       } else if (w < 1024) {
         calculatedScale = clamp((w - 60) / (cfg.cardWidth + 120), 0.65, 0.95);
       } else {
