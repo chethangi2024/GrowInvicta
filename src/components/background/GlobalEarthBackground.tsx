@@ -345,28 +345,10 @@ export default function GlobalEarthBackground() {
 
     window.addEventListener("resize", onResize, { passive: true });
 
-    // --- Visibility & Render Loop ---
+    // --- Continuous Render Loop ---
     let animationFrameId: number | null = null;
-    let isVisible = true;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        isVisible = entry.isIntersecting;
-        if (isVisible && animationFrameId === null) {
-          animationFrameId = requestAnimationFrame(animate);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-    observer.observe(container);
 
     const animate = (time: number) => {
-      if (!isVisible) {
-        animationFrameId = null;
-        return;
-      }
-
       const timeSeconds = time * 0.001;
 
       // Update star twinkle
@@ -395,7 +377,6 @@ export default function GlobalEarthBackground() {
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
       }
-      observer.disconnect();
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
