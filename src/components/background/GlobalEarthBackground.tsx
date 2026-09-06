@@ -131,26 +131,26 @@ export default function GlobalEarthBackground() {
     scene.add(earthGroup);
 
     // Dynamic, responsive 3D positioning and scaling:
-    // - On Mobile: Center horizontally behind content, safely framed with margins
-    // - On Tablet / Desktop: Flank gracefully to the right
+    // - Desktop / Large screens (>= 1200px): Flanked gracefully to the right at scale 1.02, x = 1.85
+    // - Tablet / Small Laptop (768px - 1199px): Flanked to right at scale 0.92, x = 1.25
+    // - Mobile (< 768px): Centered horizontally (x = 0), sized strictly from viewport width
+    //   Formula ensures Earth fills mobile screen width while preserving comfortable ~24-32px breathing room.
     const updatePosition = () => {
       const width = window.innerWidth;
 
-      if (width < 480) {
-        // Mobile (320px - 479px)
-        const mobileScale = Math.min(Math.max((width / 390) * 0.45, 0.38), 0.48);
-        earthGroup.position.set(0.0, -0.05, -0.3);
+      if (width < 768) {
+        // Mobile viewports (320px - 767px)
+        // At 390px width, scale ~0.84 provides ~28px lateral clearance.
+        // Clamp scale so Earth is always prominent yet comfortably contained.
+        const mobileScale = Math.min(Math.max((width / 390) * 0.84, 0.70), 1.05);
+        earthGroup.position.set(0.0, 0.0, -0.2);
         earthGroup.scale.setScalar(mobileScale);
-      } else if (width < 768) {
-        // Large Mobile & Phablets (480px - 767px)
-        earthGroup.position.set(0.0, -0.05, -0.25);
-        earthGroup.scale.setScalar(0.55);
       } else if (width < 1200) {
         // Tablet / Small Laptop (768px - 1199px)
         earthGroup.position.set(1.25, 0.05, -0.2);
         earthGroup.scale.setScalar(0.92);
       } else {
-        // Desktop / Large screens (1200px+)
+        // Desktop / Large screens (1200px+) - EXACT ORIGINAL VALUES PRESERVED
         earthGroup.position.set(1.85, 0.05, 0.0);
         earthGroup.scale.setScalar(1.02);
       }
@@ -306,10 +306,13 @@ export default function GlobalEarthBackground() {
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
 
-      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 5;
-      const orientationChanged = Math.abs(currentHeight - lastKnownHeight) > 150;
+      // On mobile browsers, vertical scrolling causes the URL address bar to appear/disappear,
+      // changing innerHeight by 50-100px.
+      // We only update camera projection & renderer size when width actually changes or on major orientation change.
+      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 2;
+      const heightChanged = Math.abs(currentHeight - lastKnownHeight) > 120;
 
-      if (widthChanged || orientationChanged) {
+      if (widthChanged || heightChanged) {
         lastKnownWidth = currentWidth;
         lastKnownHeight = currentHeight;
 
