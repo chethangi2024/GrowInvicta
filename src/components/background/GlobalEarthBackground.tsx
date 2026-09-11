@@ -50,18 +50,20 @@ export default function GlobalEarthBackground() {
     );
     camera.position.set(0, 0, 5.0);
 
+    const isMobile = initialWidth < 768;
+
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
       powerPreference: "high-performance",
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 1.5));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
     // --- Distant Subtle Stars (Sparse, Faint, Deep Space) ---
-    const starCount = 300;
+    const starCount = isMobile ? 120 : 300;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starSizes = new Float32Array(starCount);
@@ -238,7 +240,8 @@ export default function GlobalEarthBackground() {
     earthGroup.rotation.x = 0.12;
 
     // --- Realistic Earth Surface Shader (No Artificial Ring, Real Physics) ---
-    const earthGeometry = new THREE.SphereGeometry(1.0, 48, 48);
+    const sphereSegs = isMobile ? 36 : 48;
+    const earthGeometry = new THREE.SphereGeometry(1.0, sphereSegs, sphereSegs);
 
     const earthMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -337,60 +340,80 @@ export default function GlobalEarthBackground() {
     earthMesh.rotation.y = INITIAL_INDIA_ROTATION_Y;
     earthGroup.add(earthMesh);
 
+    // Adaptive texture URLs: 1024x512 on mobile (253KB total vs 1.8MB) for instant Slow 4G loading
+    const dayTexUrl = isMobile ? "/textures/earth/earth_atmos_1024.jpg" : "/textures/earth/earth_atmos_2048.jpg";
+    const lightsTexUrl = isMobile ? "/textures/earth/earth_lights_1024.jpg" : "/textures/earth/earth_lights_2048.png";
+    const normalTexUrl = isMobile ? "/textures/earth/earth_normal_1024.jpg" : "/textures/earth/earth_normal_2048.jpg";
+    const specTexUrl = isMobile ? "/textures/earth/earth_specular_1024.jpg" : "/textures/earth/earth_specular_2048.jpg";
+
     // Progressive asynchronous texture loading pipeline:
     // Step 1: Load Day Map first (primary visible texture)
-    loadBitmapTexture("/textures/earth/earth_atmos_2048.jpg", {
+    loadBitmapTexture(dayTexUrl, {
       isSRGB: true,
-      anisotropy: 4,
-      generateMipmaps: true,
-      minFilter: THREE.LinearMipmapLinearFilter,
+      anisotropy: isMobile ? 1 : 4,
+      generateMipmaps: !isMobile,
+      minFilter: isMobile ? THREE.LinearFilter : THREE.LinearMipmapLinearFilter,
     }).then((dayTex) => {
       if (isDisposed) return;
       earthMaterial.uniforms.uDayMap.value = dayTex;
       dayPlaceholder.dispose();
 
-      // Step 2: Schedule secondary textures during idle time to prevent any main thread hitch
-      const loadSecondaryTextures = () => {
+      // Step 2: Schedule secondary textures sequentially during idle time to prevent any main thread hitch
+      const loadSecondaryTextures = async () => {
         if (isDisposed) return;
 
-        // Night city lights
-        loadBitmapTexture("/textures/earth/earth_lights_2048.png", {
-          isSRGB: true,
-          generateMipmaps: false,
-          minFilter: THREE.LinearFilter,
-        }).then((lightsTex) => {
+        try {
+          // 1. Night city lights
+          const lightsTex = await loadBitmapTexture(lightsTexUrl, {
+            isSRGB: true,
+            generateMipmaps: false,
+            minFilter: THREE.LinearFilter,
+          });
           if (isDisposed) return;
           earthMaterial.uniforms.uLightsMap.value = lightsTex;
           lightsPlaceholder.dispose();
-        });
 
-        // Topographical relief normal map
-        loadBitmapTexture("/textures/earth/earth_normal_2048.jpg", {
-          isSRGB: false,
-          generateMipmaps: false,
-          minFilter: THREE.LinearFilter,
-        }).then((normTex) => {
+          // Micro-yield to allow the GPU to process texture upload without blocking
+          await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
           if (isDisposed) return;
-          earthMaterial.uniforms.uNormalMap.value = normTex;
-          normalPlaceholder.dispose();
-        });
 
-        // Specular ocean mask
-        loadBitmapTexture("/textures/earth/earth_specular_2048.jpg", {
-          isSRGB: false,
-          generateMipmaps: false,
-          minFilter: THREE.LinearFilter,
-        }).then((specTex) => {
+          // 2. Specular ocean mask
+          const specTex = await loadBitmapTexture(specTexUrl, {
+            isSRGB: false,
+            generateMipmaps: false,
+            minFilter: THREE.LinearFilter,
+          });
           if (isDisposed) return;
           earthMaterial.uniforms.uSpecularMap.value = specTex;
           specularPlaceholder.dispose();
-        });
+
+          // Micro-yield before final texture
+          await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
+          if (isDisposed) return;
+
+          // 3. Topographical relief normal map
+          const normTex = await loadBitmapTexture(normalTexUrl, {
+            isSRGB: false,
+            generateMipmaps: false,
+            minFilter: THREE.LinearFilter,
+          });
+          if (isDisposed) return;
+          earthMaterial.uniforms.uNormalMap.value = normTex;
+          normalPlaceholder.dispose();
+        } catch {
+          // Gracefully continue if interrupted
+        }
       };
 
       if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(loadSecondaryTextures, { timeout: 1500 });
+        (window as any).requestIdleCallback(
+          () => {
+            setTimeout(loadSecondaryTextures, isMobile ? 1200 : 100);
+          },
+          { timeout: 3500 }
+        );
       } else {
-        setTimeout(loadSecondaryTextures, 350);
+        setTimeout(loadSecondaryTextures, isMobile ? 2000 : 350);
       }
     });
 
@@ -489,7 +512,7 @@ export default function GlobalEarthBackground() {
         camera.updateProjectionMatrix();
 
         renderer.setSize(currentWidth, currentHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isDesktop ? 1.5 : 1.0));
         updatePosition();
         updateMaxScroll();
       }
