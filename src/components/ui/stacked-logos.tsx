@@ -86,9 +86,24 @@ export function StackedLogos({
     containerRef.current.style.setProperty("--mouse-y", `${y}px`);
   }, []);
 
-  // Staggered interval animation cycling through each column
+  const [isInView, setIsInView] = useState(false);
+
   useEffect(() => {
-    if (isPaused) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Staggered interval animation cycling through each column (only active when in view)
+  useEffect(() => {
+    if (isPaused || !isInView) return;
 
     const intervalMs = interval * 1000;
     const timers = logoGroups.map((group, colIdx) => {
@@ -117,7 +132,7 @@ export function StackedLogos({
         }
       });
     };
-  }, [logoGroups, interval, isPaused]);
+  }, [logoGroups, interval, isPaused, isInView]);
 
   return (
     <div

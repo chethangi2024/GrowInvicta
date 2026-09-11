@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import BorderGlow from "@/components/ui/BorderGlow";
 
@@ -33,13 +33,14 @@ export default function PrincipalProfileImage() {
     };
   }, []);
 
-  // Lerp loop for smooth, frictionless 3D tilt
-  useEffect(() => {
+  // On-demand lerp loop: only runs when mouse interacts and stops when settled
+  const startAnimate = useCallback(() => {
     if (isReducedMotion) return;
+    if (rafId.current) return;
 
     const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
 
-    const animate = () => {
+    const tick = () => {
       current.current.x = lerp(current.current.x, target.current.x, 0.08);
       current.current.y = lerp(current.current.y, target.current.y, 0.08);
 
@@ -55,15 +56,27 @@ export default function PrincipalProfileImage() {
         glareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, 0.18) 0%, rgba(139, 92, 246, 0.12) 40%, transparent 70%)`;
       }
 
-      rafId.current = requestAnimationFrame(animate);
+      const diffX = Math.abs(target.current.x - current.current.x);
+      const diffY = Math.abs(target.current.y - current.current.y);
+
+      if (diffX > 0.001 || diffY > 0.001) {
+        rafId.current = requestAnimationFrame(tick);
+      } else {
+        rafId.current = null;
+      }
     };
 
-    rafId.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-    };
+    rafId.current = requestAnimationFrame(tick);
   }, [isReducedMotion]);
+
+  useEffect(() => {
+    return () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+    };
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current || isReducedMotion) return;
@@ -75,10 +88,12 @@ export default function PrincipalProfileImage() {
       x: Math.max(-1, Math.min(1, x)),
       y: Math.max(-1, Math.min(1, y)),
     };
+    startAnimate();
   };
 
   const handleMouseLeave = () => {
     target.current = { x: 0, y: 0 };
+    startAnimate();
   };
 
   return (

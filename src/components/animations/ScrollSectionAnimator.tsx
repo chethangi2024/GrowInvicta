@@ -30,194 +30,217 @@ export default function ScrollSectionAnimator() {
       const exitOpacity = isMobile ? 0.92 : 0.85;
       const exitY = isMobile ? -8 : -20;
 
-      // Small delay to ensure all DOM nodes for the route are fully mounted
-      const timer = setTimeout(() => {
+      // Defer initialization to idle time or first user scroll to prevent blocking the initial paint & hydration
+      const initAnimator = () => {
+        if (ctx) return;
         ctx = gsap.context(() => {
           // =========================================================================
           // 1. UNIFIED SCROLL-LINKED SECTION DEPTH TRANSITIONS (Non-Hero Only)
           // =========================================================================
-          const spatialSections = document.querySelectorAll(".spatial-section");
+          const spatialSections = Array.from(document.querySelectorAll(".spatial-section")) as HTMLElement[];
+          const vh = window.innerHeight || 800;
 
-          spatialSections.forEach((section) => {
-            const el = section as HTMLElement;
-            const vh = window.innerHeight || 800;
-            const h = el.offsetHeight || 600;
-            const totalDistance = h + vh;
+          // Batch read DOM measurements first to eliminate layout thrashing
+          const sectionHeights = spatialSections.map((el) => el.offsetHeight || 600);
 
-            // Dynamic progress ratios based on section height:
-            // Entrance completes as section top settles into upper viewport (~20% from top)
-            // Exit begins as section bottom approaches upper viewport (~20% from top)
-            const enterRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
-            const exitRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
-            const plateauRatio = Math.max(0.01, 1 - enterRatio - exitRatio);
+          // Chunk 1: Spatial Section Depth Transitions
+          const initSections = () => {
+            spatialSections.forEach((el, index) => {
+              const h = sectionHeights[index];
+              const totalDistance = h + vh;
 
-            // Single unified timeline per section (avoids property overwrite conflicts)
-            const tl = gsap.timeline({
-              scrollTrigger: {
-                trigger: el,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 0.5,
-                invalidateOnRefresh: true,
-              },
-            });
+              const enterRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+              const exitRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+              const plateauRatio = Math.max(0.01, 1 - enterRatio - exitRatio);
 
-            // Stage 1: Entrance — Section gracefully emerges and rises into position
-            tl.fromTo(
-              el,
-              {
-                scale: enterScale,
-                opacity: enterOpacity,
-                y: enterY,
-                transformOrigin: "50% 25%",
-              },
-              {
+              const tl = gsap.timeline({
+                scrollTrigger: {
+                  trigger: el,
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 0.5,
+                  invalidateOnRefresh: true,
+                },
+              });
+
+              tl.fromTo(
+                el,
+                {
+                  scale: enterScale,
+                  opacity: enterOpacity,
+                  y: enterY,
+                  transformOrigin: "50% 25%",
+                },
+                {
+                  scale: 1,
+                  opacity: 1,
+                  y: 0,
+                  ease: "power1.out",
+                  duration: enterRatio,
+                }
+              );
+
+              tl.to(el, {
                 scale: 1,
                 opacity: 1,
                 y: 0,
-                ease: "power1.out",
-                duration: enterRatio,
-              }
-            );
+                ease: "none",
+                duration: plateauRatio,
+              });
 
-            // Stage 2: Active Focus Plateau — Full scale, full opacity, rock solid in view
-            tl.to(el, {
-              scale: 1,
-              opacity: 1,
-              y: 0,
-              ease: "none",
-              duration: plateauRatio,
+              tl.to(el, {
+                scale: exitScale,
+                opacity: exitOpacity,
+                y: exitY,
+                ease: "power1.in",
+                duration: exitRatio,
+              });
             });
 
-            // Stage 3: Exit — Section gently recedes, scaling down and moving slightly up
-            tl.to(el, {
-              scale: exitScale,
-              opacity: exitOpacity,
-              y: exitY,
-              ease: "power1.in",
-              duration: exitRatio,
-            });
-          });
+            // Schedule Chunk 2 in next animation frame
+            requestAnimationFrame(initHeadersAndPaths);
+          };
 
-          // =========================================================================
-          // 2. EDITORIAL HEADERS REVEAL
-          // =========================================================================
-          const sectionHeaders = document.querySelectorAll(".gsap-reveal-header");
-          sectionHeaders.forEach((header) => {
-            gsap.fromTo(
-              header,
-              { opacity: 0, y: 24 },
-              {
-                opacity: 1,
-                y: 0,
-                duration: 0.85,
-                ease: "power3.out",
-                scrollTrigger: {
-                  trigger: header,
-                  start: "top 88%",
-                  toggleActions: "play none none reverse",
-                },
-              }
-            );
-          });
-
-          // =========================================================================
-          // 3. STAGGERED GRID & LIST ITEMS (Guarantees, SOPs, FAQs, Testimonials)
-          // =========================================================================
-          const staggerContainers = document.querySelectorAll(".gsap-stagger-container");
-          staggerContainers.forEach((container) => {
-            const items = container.querySelectorAll(".gsap-stagger-item");
-            if (items.length > 0) {
+          // Chunk 2: Editorial Headers & Architectural Path Lines
+          const initHeadersAndPaths = () => {
+            const sectionHeaders = document.querySelectorAll(".gsap-reveal-header");
+            sectionHeaders.forEach((header) => {
               gsap.fromTo(
-                items,
+                header,
+                { opacity: 0, y: 24 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.85,
+                  ease: "power3.out",
+                  scrollTrigger: {
+                    trigger: header,
+                    start: "top 88%",
+                    toggleActions: "play none none reverse",
+                  },
+                }
+              );
+            });
+
+            const pathLines = document.querySelectorAll(".gsap-path-line, .gsap-line-draw");
+            pathLines.forEach((line) => {
+              gsap.fromTo(
+                line,
+                { scaleX: 0, transformOrigin: "left center" },
+                {
+                  scaleX: 1,
+                  duration: 1.1,
+                  ease: "power2.out",
+                  scrollTrigger: {
+                    trigger: line,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse",
+                  },
+                }
+              );
+            });
+
+            // Schedule Chunk 3 in next animation frame
+            requestAnimationFrame(initCardsAndStaggers);
+          };
+
+          // Chunk 3: Staggers, Cards, and Footer Wordmark
+          const initCardsAndStaggers = () => {
+            const staggerContainers = document.querySelectorAll(".gsap-stagger-container");
+            staggerContainers.forEach((container) => {
+              const items = container.querySelectorAll(".gsap-stagger-item");
+              if (items.length > 0) {
+                gsap.fromTo(
+                  items,
+                  { opacity: 0, y: 20 },
+                  {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.75,
+                    stagger: 0.08,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                      trigger: container,
+                      start: "top 86%",
+                      toggleActions: "play none none reverse",
+                    },
+                  }
+                );
+              }
+            });
+
+            const cards = document.querySelectorAll(".gsap-reveal-card, .gsap-doc-reveal");
+            cards.forEach((card) => {
+              gsap.fromTo(
+                card,
+                { opacity: 0, y: 28 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.85,
+                  ease: "power3.out",
+                  scrollTrigger: {
+                    trigger: card,
+                    start: "top 88%",
+                    toggleActions: "play none none reverse",
+                  },
+                }
+              );
+            });
+
+            const footerWordmark = document.querySelector(".gsap-footer-wordmark");
+            if (footerWordmark) {
+              gsap.fromTo(
+                footerWordmark,
                 { opacity: 0, y: 20 },
                 {
                   opacity: 1,
                   y: 0,
-                  duration: 0.75,
-                  stagger: 0.08,
-                  ease: "power3.out",
+                  duration: 1.1,
+                  ease: "power2.out",
                   scrollTrigger: {
-                    trigger: container,
-                    start: "top 86%",
+                    trigger: footerWordmark,
+                    start: "top 95%",
                     toggleActions: "play none none reverse",
                   },
                 }
               );
             }
-          });
+          };
 
-          // =========================================================================
-          // 4. PROGRESSIVE ARCHITECTURAL PATH LINES
-          // =========================================================================
-          const pathLines = document.querySelectorAll(".gsap-path-line, .gsap-line-draw");
-          pathLines.forEach((line) => {
-            gsap.fromTo(
-              line,
-              { scaleX: 0, transformOrigin: "left center" },
-              {
-                scaleX: 1,
-                duration: 1.1,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: line,
-                  start: "top 85%",
-                  toggleActions: "play none none reverse",
-                },
-              }
-            );
-          });
+          initSections();
 
-          // =========================================================================
-          // 5. LARGE EXHIBITION, COMPARISON, & DOCUMENTATION CARDS
-          // =========================================================================
-          const cards = document.querySelectorAll(".gsap-reveal-card, .gsap-doc-reveal");
-          cards.forEach((card) => {
-            gsap.fromTo(
-              card,
-              { opacity: 0, y: 28 },
-              {
-                opacity: 1,
-                y: 0,
-                duration: 0.85,
-                ease: "power3.out",
-                scrollTrigger: {
-                  trigger: card,
-                  start: "top 88%",
-                  toggleActions: "play none none reverse",
-                },
-              }
-            );
-          });
-
-          // =========================================================================
-          // 6. FOOTER GROUNDED REVEAL
-          // =========================================================================
-          const footerWordmark = document.querySelector(".gsap-footer-wordmark");
-          if (footerWordmark) {
-            gsap.fromTo(
-              footerWordmark,
-              { opacity: 0, y: 20 },
-              {
-                opacity: 1,
-                y: 0,
-                duration: 1.1,
-                ease: "power2.out",
-                scrollTrigger: {
-                  trigger: footerWordmark,
-                  start: "top 95%",
-                  toggleActions: "play none none reverse",
-                },
-              }
-            );
-          }
-
-          // Refresh ScrollTrigger to ensure accurate trigger coordinates
-          ScrollTrigger.refresh();
         });
-      }, 100);
+      };
 
-      return () => clearTimeout(timer);
+      let idleId: any = null;
+      let timerId: any = null;
+
+      const triggerEarlyOnScroll = () => {
+        if (!ctx) {
+          if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+            (window as any).cancelIdleCallback(idleId);
+          }
+          if (timerId) clearTimeout(timerId);
+          initAnimator();
+        }
+        window.removeEventListener("scroll", triggerEarlyOnScroll);
+      };
+
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        idleId = (window as any).requestIdleCallback(initAnimator, { timeout: 2000 });
+        window.addEventListener("scroll", triggerEarlyOnScroll, { passive: true, once: true });
+      } else {
+        timerId = setTimeout(initAnimator, 1200);
+      }
+
+      return () => {
+        if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+          (window as any).cancelIdleCallback(idleId);
+        }
+        if (timerId) clearTimeout(timerId);
+        window.removeEventListener("scroll", triggerEarlyOnScroll);
+      };
     }).catch((err) => {
       console.warn("GSAP ScrollSectionAnimator initialization fallback:", err);
     });

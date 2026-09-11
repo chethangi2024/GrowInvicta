@@ -381,18 +381,37 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!autoplay || reducedRef.current || count < 2) return;
     const root = rootRef.current;
+    if (!root) return;
+
     let hovered = false;
     let focused = false;
+    let inView = false;
+
     const stop = () => {
       if (autoTimerRef.current) clearInterval(autoTimerRef.current);
       autoTimerRef.current = null;
     };
     const start = () => {
       stop();
+      if (!inView) return;
       autoTimerRef.current = window.setInterval(() => {
         if (!hovered && !focused) navigateBy(1);
       }, Math.max(cfgRef.current.autoplayDelay, 1000));
     };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) {
+          start();
+        } else {
+          stop();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    io.observe(root);
+
     const onEnter = () => {
       hovered = true;
     };
@@ -405,17 +424,18 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
     const onFocusOut = () => {
       focused = false;
     };
-    root?.addEventListener("mouseenter", onEnter);
-    root?.addEventListener("mouseleave", onLeave);
-    root?.addEventListener("focusin", onFocusIn);
-    root?.addEventListener("focusout", onFocusOut);
-    start();
+    root.addEventListener("mouseenter", onEnter);
+    root.addEventListener("mouseleave", onLeave);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+
     return () => {
       stop();
-      root?.removeEventListener("mouseenter", onEnter);
-      root?.removeEventListener("mouseleave", onLeave);
-      root?.removeEventListener("focusin", onFocusIn);
-      root?.removeEventListener("focusout", onFocusOut);
+      io.disconnect();
+      root.removeEventListener("mouseenter", onEnter);
+      root.removeEventListener("mouseleave", onLeave);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
     };
   }, [autoplay, autoplayDelay, count, navigateBy]);
 

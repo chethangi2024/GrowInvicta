@@ -77,10 +77,18 @@ export function SpotlightNavbar({
   }, [pathname]);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          const isScrolled = window.scrollY > 20;
+          setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
+        });
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
