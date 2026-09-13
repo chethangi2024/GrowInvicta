@@ -243,28 +243,28 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-600">
-          <div>
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500 w-full">
+          <div className="text-center md:text-left max-w-full leading-relaxed">
             &copy; 2026 Grow Invicta. All rights reserved. High-performance digital engineering.
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 text-[var(--text-muted)]">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 max-w-full">
+            <div className="flex flex-wrap items-center justify-center gap-x-2.5 sm:gap-x-3 gap-y-1 text-[var(--text-muted)] text-[11px] sm:text-xs">
               <span>Speed</span>
-              <span>/</span>
+              <span className="text-[var(--border)]">/</span>
               <span>Transparency</span>
-              <span>/</span>
+              <span className="text-[var(--border)]">/</span>
               <span>Ownership</span>
-              <span>/</span>
+              <span className="text-[var(--border)]">/</span>
               <span>Quality</span>
             </div>
-            <span className="hidden sm:inline text-[var(--border)]">|</span>
-            <div className="flex items-center gap-2">
+            <span className="hidden md:inline text-[var(--border)]">|</span>
+            <div className="flex items-center gap-2.5 shrink-0">
               <a
                 href="https://www.instagram.com/growinvicta/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram (opens in new tab)"
-                className="text-[var(--text-muted)] hover:text-white transition-colors"
+                className="text-[var(--text-muted)] hover:text-white transition-colors p-1"
               >
                 <svg
                   className="w-3.5 h-3.5"
@@ -286,7 +286,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn (opens in new tab)"
-                className="text-[var(--text-muted)] hover:text-white transition-colors"
+                className="text-[var(--text-muted)] hover:text-white transition-colors p-1"
               >
                 <svg
                   className="w-3.5 h-3.5"

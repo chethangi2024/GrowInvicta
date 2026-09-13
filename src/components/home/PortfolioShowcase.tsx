@@ -1,8 +1,17 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import { CLIENT_WEBSITES } from "@/lib/constants";
-import DepthCarousel from "@/components/ui/DepthCarousel";
+
+const DepthCarousel = dynamic(() => import("@/components/ui/DepthCarousel"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] flex items-center justify-center text-zinc-600 font-mono text-xs">
+      Loading visual gallery...
+    </div>
+  ),
+});
 
 export default function PortfolioShowcase() {
   return (

@@ -4,6 +4,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   swcMinify: true,
+  transpilePackages: ["gsap", "@gsap/react", "three"],
   typescript: {
     // Standalone npx tsc --noEmit is used for full project typechecking
     ignoreBuildErrors: true,
