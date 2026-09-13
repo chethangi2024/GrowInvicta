@@ -161,7 +161,8 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       const az = Math.abs(d);
       const shown = az <= maxVisible + 0.5;
 
-      const tz = -actualDepth * d;
+      // On mobile, never push negative d (outgoing cards) toward camera
+      const tz = containerW < 640 ? -actualDepth * Math.max(0, d) : -actualDepth * d;
       const tx = dir * actualSpread * d;
       const ry = dir * actualTilt * clamp(d, -1, 1);
 
@@ -179,6 +180,8 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
         2
       )}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
       el.style.opacity = opacity.toFixed(3);
+      el.style.display = shown && opacity > 0.01 ? "block" : "none";
+      el.style.visibility = shown && opacity > 0.01 ? "visible" : "hidden";
       el.style.filter = `brightness(${brightness.toFixed(
         3
       )}) blur(${blurPx.toFixed(2)}px)`;
@@ -258,12 +261,12 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
       // Responsive scale calculation strictly bounded by container width
       let calculatedScale = 1;
       if (w < 480) {
-        // Mobile viewports (320px - 479px) - ensure active card fits cleanly with ~24-32px margins
-        const availableW = Math.min(w - 24, 380);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.44, 0.60);
+        // Mobile viewports (320px - 479px) - ensure active card fits cleanly with intentional side margins
+        const availableW = Math.max(w - 32, 260);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.40, 0.58);
       } else if (w < 640) {
-        const availableW = Math.min(w - 32, 480);
-        calculatedScale = clamp(availableW / cfg.cardWidth, 0.52, 0.72);
+        const availableW = Math.max(w - 40, 320);
+        calculatedScale = clamp(availableW / cfg.cardWidth, 0.50, 0.68);
       } else if (w < 1024) {
         calculatedScale = clamp((w - 60) / (cfg.cardWidth + 120), 0.65, 0.95);
       } else {
@@ -538,7 +541,7 @@ export const DepthCarousel: React.FC<DepthCarouselProps> = ({
                   className="depth-carousel__img"
                   src={item.image}
                   alt={item.alt || `${item.title} live platform screenshot`}
-                  loading={i < 4 ? "eager" : "lazy"}
+                  loading={i === 0 ? "eager" : "lazy"}
                   draggable={false}
                 />
 

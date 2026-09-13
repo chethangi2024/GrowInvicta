@@ -5,14 +5,13 @@
 .global-earth-bg-layer {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100dvh;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
   opacity: 0.95;
   contain: strict;
-  will-change: opacity;
 }
 
 .global-earth-bg-layer canvas {

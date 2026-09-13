@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "@/styles/globals.css";
+import dynamic from "next/dynamic";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
 import ScrollSectionAnimator from "@/components/animations/ScrollSectionAnimator";
-import GlobalEarthBackground from "@/components/background/GlobalEarthBackground";
+
+const GlobalEarthBackground = dynamic(
+  () => import("@/components/background/GlobalEarthBackground"),
+  { ssr: false }
+);
 
 const poppins = Poppins({
   subsets: ["latin"],

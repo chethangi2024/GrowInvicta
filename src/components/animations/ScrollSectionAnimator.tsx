@@ -43,59 +43,61 @@ export default function ScrollSectionAnimator() {
           // Batch read DOM measurements first to eliminate layout thrashing
           const sectionHeights = spatialSections.map((el) => el.offsetHeight || 600);
 
-          // Chunk 1: Spatial Section Depth Transitions
+          // Chunk 1: Spatial Section Depth Transitions (Desktop only; on mobile, section scrub causes heavy composite thrashing)
           const initSections = () => {
-            spatialSections.forEach((el, index) => {
-              const h = sectionHeights[index];
-              const totalDistance = h + vh;
+            if (!isMobile) {
+              spatialSections.forEach((el, index) => {
+                const h = sectionHeights[index];
+                const totalDistance = h + vh;
 
-              const enterRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
-              const exitRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
-              const plateauRatio = Math.max(0.01, 1 - enterRatio - exitRatio);
+                const enterRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+                const exitRatio = Math.max(0.12, Math.min(0.35, (vh * 0.75) / totalDistance));
+                const plateauRatio = Math.max(0.01, 1 - enterRatio - exitRatio);
 
-              const tl = gsap.timeline({
-                scrollTrigger: {
-                  trigger: el,
-                  start: "top bottom",
-                  end: "bottom top",
-                  scrub: 0.5,
-                  invalidateOnRefresh: true,
-                },
-              });
+                const tl = gsap.timeline({
+                  scrollTrigger: {
+                    trigger: el,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: 0.5,
+                    invalidateOnRefresh: true,
+                  },
+                });
 
-              tl.fromTo(
-                el,
-                {
-                  scale: enterScale,
-                  opacity: enterOpacity,
-                  y: enterY,
-                  transformOrigin: "50% 25%",
-                },
-                {
+                tl.fromTo(
+                  el,
+                  {
+                    scale: enterScale,
+                    opacity: enterOpacity,
+                    y: enterY,
+                    transformOrigin: "50% 25%",
+                  },
+                  {
+                    scale: 1,
+                    opacity: 1,
+                    y: 0,
+                    ease: "power1.out",
+                    duration: enterRatio,
+                  }
+                );
+
+                tl.to(el, {
                   scale: 1,
                   opacity: 1,
                   y: 0,
-                  ease: "power1.out",
-                  duration: enterRatio,
-                }
-              );
+                  ease: "none",
+                  duration: plateauRatio,
+                });
 
-              tl.to(el, {
-                scale: 1,
-                opacity: 1,
-                y: 0,
-                ease: "none",
-                duration: plateauRatio,
+                tl.to(el, {
+                  scale: exitScale,
+                  opacity: exitOpacity,
+                  y: exitY,
+                  ease: "power1.in",
+                  duration: exitRatio,
+                });
               });
-
-              tl.to(el, {
-                scale: exitScale,
-                opacity: exitOpacity,
-                y: exitY,
-                ease: "power1.in",
-                duration: exitRatio,
-              });
-            });
+            }
 
             // Schedule Chunk 2 in next animation frame
             requestAnimationFrame(initHeadersAndPaths);

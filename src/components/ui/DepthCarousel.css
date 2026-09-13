@@ -15,8 +15,7 @@
   -webkit-user-select: none;
   cursor: grab;
   padding: 10px 0;
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: hidden;
 }
 
 .depth-carousel:active {
@@ -226,7 +225,8 @@
 
 @media (max-width: 639px) {
   .depth-carousel__active-info-panel {
-    max-width: 440px;
+    width: 100%;
+    max-width: min(100%, 400px);
     margin-top: 14px;
     padding: 14px 16px;
     text-align: center;

@@ -56,20 +56,20 @@ export default function DocumentationSection() {
           {/* Right Column: Architectural Document Schema View */}
           <div className="lg:col-span-6 gsap-doc-reveal w-full min-w-0">
             <BorderGlow
-              className="p-5 sm:p-8 w-full"
+              className="p-4 sm:p-8 w-full"
               borderRadius={2}
               glowRadius={30}
               glowIntensity={1.0}
               colors={["#7C3AED", "#FF6A00"]}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[var(--border)] mb-6 font-mono text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[var(--border)] mb-5 font-mono text-xs">
                 <span className="text-[var(--text-primary)] font-bold tracking-tight">PROJECT HANDOVER</span>
                 <span className="text-[var(--text-muted)] uppercase text-[10px] sm:text-xs shrink-0">Standard Delivery</span>
               </div>
 
-              <div className="space-y-4 font-mono text-xs text-[var(--text-secondary)]">
-                <div className="p-4 neo-card-inset min-w-0">
-                  <div className="text-[var(--text-primary)] font-bold mb-1.5 break-words">01. INFRASTRUCTURE &amp; DEPLOYMENT</div>
+              <div className="space-y-3.5 font-mono text-xs text-[var(--text-secondary)]">
+                <div className="p-3.5 sm:p-4 neo-card-inset min-w-0">
+                  <div className="text-[var(--text-primary)] font-bold text-xs sm:text-sm mb-1.5 break-words">01. INFRASTRUCTURE &amp; DEPLOYMENT</div>
                   <ul className="text-[var(--text-muted)] text-[11px] leading-relaxed space-y-1">
                     <li className="break-words">• GitHub Organization Repository Transfer</li>
                     <li className="break-words">• Vercel / Cloudways Direct Production DNS Records</li>
@@ -77,8 +77,8 @@ export default function DocumentationSection() {
                   </ul>
                 </div>
 
-                <div className="p-4 neo-card-inset min-w-0">
-                  <div className="text-[var(--text-primary)] font-bold mb-1.5 break-words">02. CONTENT OPERATIONS &amp; EDITING</div>
+                <div className="p-3.5 sm:p-4 neo-card-inset min-w-0">
+                  <div className="text-[var(--text-primary)] font-bold text-xs sm:text-sm mb-1.5 break-words">02. CONTENT OPERATIONS &amp; EDITING</div>
                   <ul className="text-[var(--text-muted)] text-[11px] leading-relaxed space-y-1">
                     <li className="break-words">• Modifying typography tokens, headlines &amp; CTA buttons</li>
                     <li className="break-words">• Uploading &amp; indexing 4 pre-loaded authority SEO articles</li>
@@ -86,8 +86,8 @@ export default function DocumentationSection() {
                   </ul>
                 </div>
 
-                <div className="p-4 neo-card-inset min-w-0">
-                  <div className="text-[var(--text-primary)] font-bold mb-1.5 break-words">03. SOURCE CODE &amp; MASTER ASSETS</div>
+                <div className="p-3.5 sm:p-4 neo-card-inset min-w-0">
+                  <div className="text-[var(--text-primary)] font-bold text-xs sm:text-sm mb-1.5 break-words">03. SOURCE CODE &amp; MASTER ASSETS</div>
                   <ul className="text-[var(--text-muted)] text-[11px] leading-relaxed space-y-1">
                     <li className="break-words">• Live editable Canva master template links</li>
                     <li className="break-words">• 300 DPI CMYK print export presets with crop marks</li>
@@ -95,7 +95,7 @@ export default function DocumentationSection() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-[var(--text-muted)]">
+              <div className="mt-5 pt-4 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-[var(--text-muted)]">
                 <span>Non-Technical Language</span>
                 <span className="text-[var(--text-primary)] font-semibold">100% Client Ownership</span>
               </div>

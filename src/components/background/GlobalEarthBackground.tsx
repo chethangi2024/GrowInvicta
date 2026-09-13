@@ -29,10 +29,12 @@ export default function GlobalEarthBackground() {
     const initialWidth = window.innerWidth;
     const initialHeight = window.innerHeight;
     const initialAspect = initialWidth / initialHeight;
+    const isMobile = initialWidth < 768;
 
-    // Fixed horizontal FOV for mobile (~26.5 deg) keeps Earth width strictly proportional to viewport width
+    // Stable horizontal FOV for mobile (~29 deg) keeps Earth width strictly proportional
+    // to viewport width with intentional breathing room on both sides (~12% margin each)
     // and 100% immune to viewport height / mobile address bar expansion/collapse
-    const TARGET_MOBILE_HFOV_RAD = 0.463;
+    const TARGET_MOBILE_HFOV_RAD = 0.505;
 
     const computeCameraFov = (w: number, h: number) => {
       if (w < 768) {
@@ -50,20 +52,18 @@ export default function GlobalEarthBackground() {
     );
     camera.position.set(0, 0, 5.0);
 
-    const isMobile = initialWidth < 768;
-
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: !isMobile, // Disable expensive antialiasing on mobile high-DPI displays
       powerPreference: "high-performance",
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.0 : 1.5));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(initialWidth, initialHeight, false);
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
     // --- Distant Subtle Stars (Sparse, Faint, Deep Space) ---
-    const starCount = isMobile ? 120 : 300;
+    const starCount = isMobile ? 80 : 250;
     const starGeometry = new THREE.BufferGeometry();
     const starPositions = new Float32Array(starCount * 3);
     const starSizes = new Float32Array(starCount);
@@ -217,14 +217,14 @@ export default function GlobalEarthBackground() {
     // Dynamic, responsive 3D positioning and scaling:
     // - Desktop / Large screens (>= 1200px): Flanked gracefully to the right at scale 1.02, x = 1.85
     // - Tablet / Small Laptop (768px - 1199px): Flanked to right at scale 0.92, x = 1.25
-    // - Mobile (< 768px): Centered horizontally (x = 0), sized strictly from viewport width
+    // - Mobile (< 768px): Centered horizontally (x = 0), sized with strong visual presence and ~12% breathing room
     const updatePosition = () => {
       const width = window.innerWidth;
 
       if (width < 768) {
-        const mobileScale = Math.min(Math.max((width / 390) * 0.98, 0.88), 1.15);
+        // Stable mobile scale with intentional breathing room left and right
         earthGroup.position.set(0.0, 0.0, -0.2);
-        earthGroup.scale.setScalar(mobileScale);
+        earthGroup.scale.setScalar(1.05);
       } else if (width < 1200) {
         earthGroup.position.set(1.25, 0.05, -0.2);
         earthGroup.scale.setScalar(0.92);
@@ -240,7 +240,7 @@ export default function GlobalEarthBackground() {
     earthGroup.rotation.x = 0.12;
 
     // --- Realistic Earth Surface Shader (No Artificial Ring, Real Physics) ---
-    const sphereSegs = isMobile ? 36 : 48;
+    const sphereSegs = isMobile ? 32 : 48;
     const earthGeometry = new THREE.SphereGeometry(1.0, sphereSegs, sphereSegs);
 
     const earthMaterial = new THREE.ShaderMaterial({
@@ -443,9 +443,11 @@ export default function GlobalEarthBackground() {
     let lastRenderTime = 0;
 
     const checkVisibility = (scrollY: number) => {
-      // Hero section ends around ~350vh-400vh. Beyond 420vh, opaque background sections completely cover the viewport.
-      const heroThreshold = (window.innerHeight || 800) * 4.2;
-      const visible = scrollY < heroThreshold;
+      const vh = window.innerHeight || 800;
+      const heroThreshold = vh * 4.2;
+      // Pre-footer & Footer visibility: re-activates when user scrolls near the bottom of the page
+      const footerThreshold = Math.max(cachedMaxScroll - vh * 2.2, heroThreshold + 200);
+      const visible = scrollY < heroThreshold || scrollY > footerThreshold;
       if (visible !== isEarthVisible) {
         isEarthVisible = visible;
         if (isEarthVisible && !isTicking) {
@@ -488,9 +490,11 @@ export default function GlobalEarthBackground() {
       });
     };
 
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    if (!isMobile) {
+      window.addEventListener("mousemove", onMouseMove, { passive: true });
+    }
 
-    // --- Dynamic Resize Handler ---
+    // --- Dynamic Resize Handler with Mobile Address-Bar Stability ---
     let lastKnownWidth = window.innerWidth;
     let lastKnownHeight = window.innerHeight;
 
@@ -499,22 +503,26 @@ export default function GlobalEarthBackground() {
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
 
-      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 4;
-      const isDesktop = currentWidth >= 768;
-      const heightChanged = isDesktop && Math.abs(currentHeight - lastKnownHeight) > 100;
+      const widthChanged = Math.abs(currentWidth - lastKnownWidth) > 3;
+      const heightChanged = Math.abs(currentHeight - lastKnownHeight) > 3;
 
       if (widthChanged || heightChanged) {
         lastKnownWidth = currentWidth;
         lastKnownHeight = currentHeight;
 
+        // On mobile, height changes from browser chrome expansion/collapse adjust FOV smoothly
+        // such that the horizontal visible width remains constant, preventing any scale jump
         camera.aspect = currentWidth / currentHeight;
         camera.fov = computeCameraFov(currentWidth, currentHeight);
         camera.updateProjectionMatrix();
 
-        renderer.setSize(currentWidth, currentHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isDesktop ? 1.5 : 1.0));
-        updatePosition();
-        updateMaxScroll();
+        renderer.setSize(currentWidth, currentHeight, false);
+
+        if (widthChanged) {
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, currentWidth >= 768 ? 1.5 : 1.0));
+          updatePosition();
+          updateMaxScroll();
+        }
       }
       handleScroll();
     };
