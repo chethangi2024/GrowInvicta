@@ -155,12 +155,27 @@ export default function PrincipalProfileImage() {
             <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#07080A]/90 via-[#07080A]/40 to-transparent pointer-events-none" />
 
             {/* Bottom Principal Label */}
-            <div className="absolute bottom-3.5 left-3.5 right-3.5">
-              <div className="text-[var(--text-primary)] font-bold text-sm tracking-tight drop-shadow-sm">
-                Chethan N
-              </div>
-              <div className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider mt-0.5">
-                Founder &amp; Digital Consultant
+            <div className="absolute bottom-3.5 left-3.5 right-3.5 z-10">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[var(--text-primary)] font-bold text-sm tracking-tight drop-shadow-sm">
+                    Chethan N
+                  </div>
+                  <div className="text-[var(--text-secondary)] font-mono text-[10px] uppercase tracking-wider mt-0.5">
+                    Founder &amp; Digital Consultant
+                  </div>
+                </div>
+                <a
+                  href="https://www.linkedin.com/in/chethangrowinvicta/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View Chethan N's Founder LinkedIn Profile"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[2px] bg-black/70 hover:bg-[#0077B5]/20 border border-white/10 hover:border-[#0077B5]/60 text-[10px] font-mono text-[var(--text-primary)] hover:text-white transition-all shadow-sm group/lnk"
+                >
+                  <span className="hidden xs:inline sm:inline">View LinkedIn Profile</span>
+                  <span className="xs:hidden sm:hidden">LinkedIn</span>
+                  <span className="text-[11px] leading-none transition-transform group-hover/lnk:translate-x-0.5 group-hover/lnk:-translate-y-0.5">↗</span>
+                </a>
               </div>
             </div>
           </div>

@@ -13,9 +13,12 @@ const GlobalEarthBackground = dynamic(
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-poppins",
-  display: "swap",
+  display: "optional",
+  preload: true,
+  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -63,11 +66,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/GI-Favicon.webp", type: "image/webp" },
-      { url: "/GI-Favicon.png", type: "image/png" },
-      { url: "/brand/GI-Favicon.webp", type: "image/webp" },
       { url: "/favicon.ico" },
     ],
-    shortcut: "/GI-Favicon.webp",
     apple: "/GI-Favicon.png",
   }
 };
@@ -79,11 +79,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} dark font-sans`}>
-      <head>
-        <link rel="icon" type="image/webp" href="/GI-Favicon.webp" />
-        <link rel="icon" type="image/png" href="/GI-Favicon.png" />
-        <link rel="apple-touch-icon" href="/GI-Favicon.png" />
-      </head>
       <body className="bg-[#07080A] text-[#F5F5F5] antialiased selection:bg-[#7C3AED] selection:text-white min-h-screen flex flex-col">
         {/* Global Subtle 3D Earth Atmospheric Background */}
         <GlobalEarthBackground />

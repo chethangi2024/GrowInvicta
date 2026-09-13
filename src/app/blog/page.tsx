@@ -19,6 +19,10 @@ export default function BlogHubPage() {
     { id: "Content & Video", label: "Content & Video" },
   ];
 
+  const INITIAL_COUNT = 19;
+  const BATCH_SIZE = 19;
+  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_COUNT);
+
   const published = getPublishedArticles();
   const filteredArticles =
     selectedCategory === "all"
@@ -34,11 +38,31 @@ export default function BlogHubPage() {
     }
   };
 
-  const featured = published[0];
-  const rest =
-    selectedCategory === "all"
-      ? filteredArticles.filter((a) => a.slug !== featured?.slug)
-      : filteredArticles;
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setVisibleCount(INITIAL_COUNT);
+  };
+
+  // In "all" category, the 1st post is displayed in the Featured dominant banner
+  // and the remaining 18 posts appear in the grid, making exactly 19 posts total initially.
+  // In filtered categories, all posts appear in the grid.
+  const isAllCategory = selectedCategory === "all";
+  const featured = isAllCategory ? published[0] : undefined;
+  
+  const allGridArticles = isAllCategory
+    ? filteredArticles.filter((a) => a.slug !== featured?.slug)
+    : filteredArticles;
+
+  const initialGridCount = isAllCategory ? INITIAL_COUNT - 1 : INITIAL_COUNT;
+  const currentGridLimit = isAllCategory ? Math.max(0, visibleCount - 1) : visibleCount;
+  
+  const visibleGridArticles = allGridArticles.slice(0, currentGridLimit);
+  const totalDisplayedCount = (featured ? 1 : 0) + visibleGridArticles.length;
+  const hasMore = totalDisplayedCount < filteredArticles.length;
+
+  const handleViewMore = () => {
+    setVisibleCount((prev) => prev + BATCH_SIZE);
+  };
 
   return (
     <div className="pt-28 sm:pt-32 lg:pt-36 pb-20 sm:pb-24 lg:pb-28 bg-[var(--page-bg)] text-[var(--text-primary)]">
@@ -119,7 +143,7 @@ export default function BlogHubPage() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => handleCategoryChange(cat.id)}
               className={`px-4 py-2 text-xs font-mono uppercase tracking-wider transition-colors whitespace-nowrap ${
                 selectedCategory === cat.id
                   ? "bg-white text-black font-bold"
@@ -132,52 +156,69 @@ export default function BlogHubPage() {
         </div>
 
         {/* Articles List */}
-        {rest.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24 gsap-stagger-container">
-            {rest.map((art) => (
-              <Link
-                key={art.slug}
-                href={`/${art.slug}`}
-                className="border border-[var(--border)] bg-[var(--section-bg)] flex flex-col justify-between hover:border-[var(--border-hover)] transition-colors gsap-stagger-item overflow-hidden"
-              >
-                {/* Card Featured Image */}
-                {art.featuredImage && (
-                  <div className="w-full overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={art.featuredImage}
-                      alt={art.featuredImageAlt || art.title}
-                      className="w-full h-48 object-cover object-center"
-                      loading="lazy"
-                    />
-                  </div>
-                )}
+        {visibleGridArticles.length > 0 ? (
+          <div className="mb-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gsap-stagger-container">
+              {visibleGridArticles.map((art) => (
+                <Link
+                  key={art.slug}
+                  href={`/${art.slug}`}
+                  className="border border-[var(--border)] bg-[var(--section-bg)] flex flex-col justify-between hover:border-[var(--border-hover)] transition-colors gsap-stagger-item overflow-hidden"
+                >
+                  {/* Card Featured Image */}
+                  {art.featuredImage && (
+                    <div className="w-full overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={art.featuredImage}
+                        alt={art.featuredImageAlt || art.title}
+                        className="w-full h-48 object-cover object-center"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
 
-                <div className="p-8 flex flex-col flex-grow">
-                  <div>
-                    <div className="flex items-center justify-between mb-4 font-mono text-xs text-[var(--text-muted)]">
-                      <span className="uppercase text-[var(--text-secondary)]">{art.category}</span>
-                      <span>{art.readTime}</span>
+                  <div className="p-8 flex flex-col flex-grow">
+                    <div>
+                      <div className="flex items-center justify-between mb-4 font-mono text-xs text-[var(--text-muted)]">
+                        <span className="uppercase text-[var(--text-secondary)]">{art.category}</span>
+                        <span>{art.readTime}</span>
+                      </div>
+
+                      <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] mb-3 tracking-tight leading-snug">
+                        {art.title}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed mb-6">
+                        {art.excerpt}
+                      </p>
                     </div>
 
-                    <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] mb-3 tracking-tight leading-snug">
-                      {art.title}
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed mb-6">
-                      {art.excerpt}
-                    </p>
+                    <div className="pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mt-auto">
+                      <span>{art.author}</span>
+                      <span className="text-[var(--text-primary)] flex items-center gap-1 uppercase">
+                        Read <ArrowUpRight className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
+                </Link>
+              ))}
+            </div>
 
-                  <div className="pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-mono text-[var(--text-muted)] mt-auto">
-                    <span>{art.author}</span>
-                    <span className="text-[var(--text-primary)] flex items-center gap-1 uppercase">
-                      Read <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+            {/* VIEW MORE Button */}
+            {hasMore && (
+              <div className="mt-12 sm:mt-16 flex justify-center items-center">
+                <button
+                  type="button"
+                  onClick={handleViewMore}
+                  className="btn-secondary font-mono text-xs uppercase tracking-widest px-8 py-3.5 transition-all duration-200"
+                  aria-label="View more published blog articles"
+                >
+                  <span>VIEW MORE</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 ml-1 inline" />
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-12 mb-20 text-center border border-[var(--border)] bg-[var(--section-bg)] p-8">
@@ -188,7 +229,7 @@ export default function BlogHubPage() {
             </p>
             {selectedCategory !== "all" && (
               <button
-                onClick={() => setSelectedCategory("all")}
+                onClick={() => handleCategoryChange("all")}
                 className="mt-4 px-4 py-2 text-xs font-mono border border-[var(--border)] text-[var(--text-primary)] hover:border-white transition-colors uppercase tracking-wider"
               >
                 View All Insights

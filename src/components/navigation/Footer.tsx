@@ -83,6 +83,60 @@ export default function Footer() {
                 <Mail className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                 <span>mail@growinvicta.com</span>
               </a>
+
+              {/* Social Media Channels */}
+              <div className="pt-3 flex items-center gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-mono">
+                  Follow Us
+                </span>
+                <span className="text-[var(--border)]">|</span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.instagram.com/growinvicta/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Grow Invicta on Instagram (opens in new tab)"
+                    className="p-1.5 rounded-[2px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-[#E1306C]/60 text-[var(--text-secondary)] hover:text-white transition-all group"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5 transition-transform group-hover:scale-110"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                    </svg>
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/company/grow-invicta/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Grow Invicta Company on LinkedIn (opens in new tab)"
+                    className="p-1.5 rounded-[2px] bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-[#0077B5]/60 text-[var(--text-secondary)] hover:text-white transition-all group"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5 transition-transform group-hover:scale-110"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                      <rect width="4" height="12" x="2" y="9" />
+                      <circle cx="4" cy="4" r="2" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -193,14 +247,63 @@ export default function Footer() {
           <div>
             &copy; 2026 Grow Invicta. All rights reserved. High-performance digital engineering.
           </div>
-          <div className="flex items-center gap-3 text-[var(--text-muted)]">
-            <span>Speed</span>
-            <span>/</span>
-            <span>Transparency</span>
-            <span>/</span>
-            <span>Ownership</span>
-            <span>/</span>
-            <span>Quality</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 text-[var(--text-muted)]">
+              <span>Speed</span>
+              <span>/</span>
+              <span>Transparency</span>
+              <span>/</span>
+              <span>Ownership</span>
+              <span>/</span>
+              <span>Quality</span>
+            </div>
+            <span className="hidden sm:inline text-[var(--border)]">|</span>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://www.instagram.com/growinvicta/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram (opens in new tab)"
+                className="text-[var(--text-muted)] hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                </svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/grow-invicta/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn (opens in new tab)"
+                className="text-[var(--text-muted)] hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                  <rect width="4" height="12" x="2" y="9" />
+                  <circle cx="4" cy="4" r="2" />
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
       </div>

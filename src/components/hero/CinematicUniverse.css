@@ -1,0 +1,182 @@
+/* ==========================================================================
+   Cinematic Universe Backdrop - Ambient Celestial Bodies & Deep Cosmic Depth
+   Ultra-lightweight, 0ms main thread overhead, GPU compositor accelerated
+   ========================================================================== */
+
+.cinematic-universe {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  contain: strict;
+  transition: opacity 0.6s ease-out;
+}
+
+/* Deep Cosmic Nebulae (Multi-layer faint astronomical luminescence) */
+.cinematic-universe__nebula-indigo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 65% 55% at 75% 25%,
+    rgba(55, 30, 105, 0.16) 0%,
+    rgba(20, 25, 65, 0.06) 45%,
+    transparent 75%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.cinematic-universe__nebula-warm {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 45% 40% at 25% 75%,
+    rgba(70, 35, 18, 0.10) 0%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.cinematic-universe__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 40%,
+    rgba(3, 4, 7, 0.85) 100%
+  );
+  pointer-events: none;
+}
+
+/* Celestial Body 1: Distant Moon / Lunar Exoplanet */
+.celestial-moon {
+  position: absolute;
+  top: 15%;
+  right: 38%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  /* Directional lighting matching Three.js sun from top-left (135deg) */
+  background: radial-gradient(
+    circle at 35% 35%,
+    #A0AAB8 0%,
+    #586272 35%,
+    #252C38 70%,
+    #0B0E14 100%
+  );
+  box-shadow:
+    inset -3px -3px 6px rgba(0, 0, 0, 0.95),
+    0 0 16px rgba(160, 170, 184, 0.14);
+  animation: celestialOrbit1 75s ease-in-out infinite alternate;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Subtle atmospheric haze around distant moon */
+.celestial-moon::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(190, 205, 225, 0.25) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Celestial Body 2: Distant Terrestrial Minor Planet */
+.celestial-planet-minor {
+  position: absolute;
+  bottom: 25%;
+  left: 45%;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  /* Warm mineral basalt/rust illumination */
+  background: radial-gradient(
+    circle at 30% 30%,
+    #C46E4A 0%,
+    #7B3820 45%,
+    #25120C 80%,
+    #0A0503 100%
+  );
+  box-shadow:
+    inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.95),
+    0 0 10px rgba(196, 110, 74, 0.22);
+  animation: celestialOrbit2 90s ease-in-out infinite alternate;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Distant Micro Stardust Twinkles */
+.celestial-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #FFFFFF;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+/* Mobile responsive scaling of celestial bodies */
+@media (max-width: 768px) {
+  .celestial-moon {
+    top: 13%;
+    right: 8%;
+    width: 24px;
+    height: 24px;
+  }
+  .celestial-planet-minor {
+    bottom: 28%;
+    left: 8%;
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Majestic Slow Cinematic Drift Keyframes */
+@keyframes celestialOrbit1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-14px, 8px, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(10px, -6px, 0) scale(0.98);
+  }
+}
+
+@keyframes celestialOrbit2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10px, -12px, 0) scale(0.96);
+  }
+  100% {
+    transform: translate3d(-8px, 6px, 0) scale(1.04);
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celestial-moon,
+  .celestial-planet-minor,
+  .celestial-star {
+    animation: none !important;
+  }
+}

@@ -222,14 +222,16 @@ export default function GlobalEarthBackground() {
       const width = window.innerWidth;
 
       if (width < 768) {
-        // Stable mobile scale with intentional breathing room left and right
-        earthGroup.position.set(0.0, 0.0, -0.2);
-        earthGroup.scale.setScalar(1.05);
+        // Stable mobile scale with intentional breathing room left and right (~12% margins)
+        // Positioned in lower-center (y = -0.18) so the upper hero content has clear breathing room
+        earthGroup.position.set(0.0, -0.18, -0.2);
+        earthGroup.scale.setScalar(1.02);
       } else if (width < 1200) {
-        earthGroup.position.set(1.25, 0.05, -0.2);
+        earthGroup.position.set(1.25, 0.0, -0.2);
         earthGroup.scale.setScalar(0.92);
       } else {
-        earthGroup.position.set(1.85, 0.05, 0.0);
+        // Desktop: Flanked naturally to the right side (x = 1.80) leaving left 55% for text
+        earthGroup.position.set(1.80, 0.0, 0.0);
         earthGroup.scale.setScalar(1.02);
       }
     };
@@ -340,82 +342,93 @@ export default function GlobalEarthBackground() {
     earthMesh.rotation.y = INITIAL_INDIA_ROTATION_Y;
     earthGroup.add(earthMesh);
 
-    // Adaptive texture URLs: 1024x512 on mobile (253KB total vs 1.8MB) for instant Slow 4G loading
-    const dayTexUrl = isMobile ? "/textures/earth/earth_atmos_1024.jpg" : "/textures/earth/earth_atmos_2048.jpg";
-    const lightsTexUrl = isMobile ? "/textures/earth/earth_lights_1024.jpg" : "/textures/earth/earth_lights_2048.png";
-    const normalTexUrl = isMobile ? "/textures/earth/earth_normal_1024.jpg" : "/textures/earth/earth_normal_2048.jpg";
-    const specTexUrl = isMobile ? "/textures/earth/earth_specular_1024.jpg" : "/textures/earth/earth_specular_2048.jpg";
+    // Adaptive WebP texture URLs: 512x256 WebP on mobile (44KB total) and 2048x1024 WebP on desktop (606KB total)
+    const dayTexUrl = isMobile ? "/textures/earth/earth_atmos_512.webp" : "/textures/earth/earth_atmos_2048.webp";
+    const lightsTexUrl = isMobile ? "/textures/earth/earth_lights_512.webp" : "/textures/earth/earth_lights_2048.webp";
+    const normalTexUrl = isMobile ? "/textures/earth/earth_normal_512.webp" : "/textures/earth/earth_normal_2048.webp";
+    const specTexUrl = isMobile ? "/textures/earth/earth_specular_512.webp" : "/textures/earth/earth_specular_2048.webp";
 
     // Progressive asynchronous texture loading pipeline:
-    // Step 1: Load Day Map first (primary visible texture)
-    loadBitmapTexture(dayTexUrl, {
-      isSRGB: true,
-      anisotropy: isMobile ? 1 : 4,
-      generateMipmaps: !isMobile,
-      minFilter: isMobile ? THREE.LinearFilter : THREE.LinearMipmapLinearFilter,
-    }).then((dayTex) => {
+    // Deferred slightly to idle time so Hero text and critical DOM paint first (FCP/LCP priority)
+    const startTextureLoading = () => {
       if (isDisposed) return;
-      earthMaterial.uniforms.uDayMap.value = dayTex;
-      dayPlaceholder.dispose();
-
-      // Step 2: Schedule secondary textures sequentially during idle time to prevent any main thread hitch
-      const loadSecondaryTextures = async () => {
+      loadBitmapTexture(dayTexUrl, {
+        isSRGB: true,
+        anisotropy: isMobile ? 1 : 4,
+        generateMipmaps: !isMobile,
+        minFilter: isMobile ? THREE.LinearFilter : THREE.LinearMipmapLinearFilter,
+      }).then((dayTex) => {
         if (isDisposed) return;
+        earthMaterial.uniforms.uDayMap.value = dayTex;
+        dayPlaceholder.dispose();
 
-        try {
-          // 1. Night city lights
-          const lightsTex = await loadBitmapTexture(lightsTexUrl, {
-            isSRGB: true,
-            generateMipmaps: false,
-            minFilter: THREE.LinearFilter,
-          });
-          if (isDisposed) return;
-          earthMaterial.uniforms.uLightsMap.value = lightsTex;
-          lightsPlaceholder.dispose();
-
-          // Micro-yield to allow the GPU to process texture upload without blocking
-          await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
+        // Step 2: Schedule secondary textures sequentially during idle time to prevent any main thread hitch
+        const loadSecondaryTextures = async () => {
           if (isDisposed) return;
 
-          // 2. Specular ocean mask
-          const specTex = await loadBitmapTexture(specTexUrl, {
-            isSRGB: false,
-            generateMipmaps: false,
-            minFilter: THREE.LinearFilter,
-          });
-          if (isDisposed) return;
-          earthMaterial.uniforms.uSpecularMap.value = specTex;
-          specularPlaceholder.dispose();
+          try {
+            // 1. Night city lights
+            const lightsTex = await loadBitmapTexture(lightsTexUrl, {
+              isSRGB: true,
+              generateMipmaps: false,
+              minFilter: THREE.LinearFilter,
+            });
+            if (isDisposed) return;
+            earthMaterial.uniforms.uLightsMap.value = lightsTex;
+            lightsPlaceholder.dispose();
 
-          // Micro-yield before final texture
-          await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
-          if (isDisposed) return;
+            // Micro-yield to allow the GPU to process texture upload without blocking
+            await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
+            if (isDisposed) return;
 
-          // 3. Topographical relief normal map
-          const normTex = await loadBitmapTexture(normalTexUrl, {
-            isSRGB: false,
-            generateMipmaps: false,
-            minFilter: THREE.LinearFilter,
-          });
-          if (isDisposed) return;
-          earthMaterial.uniforms.uNormalMap.value = normTex;
-          normalPlaceholder.dispose();
-        } catch {
-          // Gracefully continue if interrupted
+            // 2. Specular ocean mask
+            const specTex = await loadBitmapTexture(specTexUrl, {
+              isSRGB: false,
+              generateMipmaps: false,
+              minFilter: THREE.LinearFilter,
+            });
+            if (isDisposed) return;
+            earthMaterial.uniforms.uSpecularMap.value = specTex;
+            specularPlaceholder.dispose();
+
+            // Micro-yield before final texture
+            await new Promise((r) => setTimeout(r, isMobile ? 350 : 60));
+            if (isDisposed) return;
+
+            // 3. Topographical relief normal map
+            const normTex = await loadBitmapTexture(normalTexUrl, {
+              isSRGB: false,
+              generateMipmaps: false,
+              minFilter: THREE.LinearFilter,
+            });
+            if (isDisposed) return;
+            earthMaterial.uniforms.uNormalMap.value = normTex;
+            normalPlaceholder.dispose();
+          } catch {
+            // Gracefully continue if interrupted
+          }
+        };
+
+        if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+          (window as any).requestIdleCallback(
+            () => {
+              setTimeout(loadSecondaryTextures, isMobile ? 1200 : 100);
+            },
+            { timeout: 3500 }
+          );
+        } else {
+          setTimeout(loadSecondaryTextures, isMobile ? 2000 : 350);
         }
-      };
+      });
+    };
 
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(
-          () => {
-            setTimeout(loadSecondaryTextures, isMobile ? 1200 : 100);
-          },
-          { timeout: 3500 }
-        );
-      } else {
-        setTimeout(loadSecondaryTextures, isMobile ? 2000 : 350);
-      }
-    });
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(() => {
+        setTimeout(startTextureLoading, isMobile ? 300 : 100);
+      }, { timeout: 1500 });
+    } else {
+      setTimeout(startTextureLoading, isMobile ? 350 : 120);
+    }
 
     // --- Smooth Interactive Physics & Scroll Interpolation ---
     let targetRotationY = INITIAL_INDIA_ROTATION_Y;
@@ -436,18 +449,15 @@ export default function GlobalEarthBackground() {
     };
     updateMaxScroll();
 
-    // Track Earth visibility in viewport (pauses WebGL render loop when user scrolls into opaque body sections)
-    let isEarthVisible = true;
+    // Track document/tab visibility to pause WebGL render loop when tab is backgrounded
+    let isEarthVisible = typeof document !== "undefined" ? !document.hidden : true;
     let animationFrameId: number | null = null;
     let isTicking = false;
     let lastRenderTime = 0;
 
-    const checkVisibility = (scrollY: number) => {
-      const vh = window.innerHeight || 800;
-      const heroThreshold = vh * 4.2;
-      // Pre-footer & Footer visibility: re-activates when user scrolls near the bottom of the page
-      const footerThreshold = Math.max(cachedMaxScroll - vh * 2.2, heroThreshold + 200);
-      const visible = scrollY < heroThreshold || scrollY > footerThreshold;
+    const onVisibilityChange = () => {
+      if (typeof document === "undefined") return;
+      const visible = !document.hidden;
       if (visible !== isEarthVisible) {
         isEarthVisible = visible;
         if (isEarthVisible && !isTicking) {
@@ -457,15 +467,37 @@ export default function GlobalEarthBackground() {
       }
     };
 
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+    }
+
+    let resizeObserver: ResizeObserver | null = null;
+    let resizeDebounceTimer: any = null;
+    if (typeof ResizeObserver !== "undefined" && typeof document !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer);
+        resizeDebounceTimer = setTimeout(() => {
+          updateMaxScroll();
+        }, 300);
+      });
+      resizeObserver.observe(document.documentElement);
+    }
+
     let scrollRafId: number | null = null;
     const handleScroll = () => {
       if (scrollRafId !== null) return;
       scrollRafId = requestAnimationFrame(() => {
         scrollRafId = null;
         const scrollY = window.scrollY || window.pageYOffset || 0;
+        if (scrollY > cachedMaxScroll) {
+          updateMaxScroll();
+        }
         const scrollProgress = Math.min(Math.max(scrollY / cachedMaxScroll, 0), 1);
         targetRotationY = INITIAL_INDIA_ROTATION_Y + scrollProgress * (Math.PI * 3.0);
-        checkVisibility(scrollY);
+        if (!isTicking && isEarthVisible) {
+          isTicking = true;
+          animationFrameId = requestAnimationFrame(animate);
+        }
       });
     };
 
@@ -487,6 +519,10 @@ export default function GlobalEarthBackground() {
         const normY = rawMouseY / window.innerHeight - 0.5;
         targetMouseX = normX * 0.15;
         targetMouseY = normY * 0.10;
+        if (!isTicking && isEarthVisible) {
+          isTicking = true;
+          animationFrameId = requestAnimationFrame(animate);
+        }
       });
     };
 
@@ -558,6 +594,10 @@ export default function GlobalEarthBackground() {
       starMaterial.uniforms.uTime.value = timeSeconds;
 
       if (!prefersReducedMotion) {
+        // Majestic slow celestial drift for background 3D starfield
+        starField.rotation.y = timeSeconds * 0.0015;
+        starField.rotation.x = Math.sin(timeSeconds * 0.0008) * 0.015;
+
         // Buttery-smooth lerping for both scroll progression and mouse parallax
         currentRotationY += (targetRotationY - currentRotationY) * 0.075;
         currentMouseX += (targetMouseX - currentMouseX) * 0.04;
@@ -584,6 +624,13 @@ export default function GlobalEarthBackground() {
       }
       if (scrollRafId !== null) cancelAnimationFrame(scrollRafId);
       if (mouseRafId !== null) cancelAnimationFrame(mouseRafId);
+
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+      }
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
 
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", onMouseMove);

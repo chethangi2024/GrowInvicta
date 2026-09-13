@@ -227,7 +227,7 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-4">
+              <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
                 <Link
                   href="/contact"
                   className="btn-primary"
@@ -241,6 +241,16 @@ export default function AboutPage() {
                 >
                   View Portfolio
                 </Link>
+                <a
+                  href="https://www.linkedin.com/in/chethangrowinvicta/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View Founder LinkedIn Profile"
+                  className="inline-flex items-center gap-1.5 px-4 py-3 text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-secondary)] hover:text-white border border-[var(--border)] hover:border-[#0077B5]/60 hover:bg-[#0077B5]/10 rounded-[2px] transition-all group"
+                >
+                  <span>View LinkedIn Profile</span>
+                  <span className="text-sm leading-none transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
+                </a>
               </div>
             </div>
 

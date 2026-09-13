@@ -229,19 +229,23 @@ export default function ScrollSectionAnimator() {
         window.removeEventListener("scroll", triggerEarlyOnScroll);
       };
 
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        idleId = (window as any).requestIdleCallback(initAnimator, { timeout: 2000 });
+      if (typeof window !== "undefined") {
+        if ("requestIdleCallback" in window) {
+          idleId = (window as any).requestIdleCallback(initAnimator, { timeout: 4500 });
+        } else {
+          timerId = setTimeout(initAnimator, 3500);
+        }
         window.addEventListener("scroll", triggerEarlyOnScroll, { passive: true, once: true });
-      } else {
-        timerId = setTimeout(initAnimator, 1200);
       }
 
       return () => {
-        if (idleId && typeof window !== "undefined" && "cancelIdleCallback" in window) {
-          (window as any).cancelIdleCallback(idleId);
+        if (typeof window !== "undefined") {
+          if (idleId && "cancelIdleCallback" in window) {
+            (window as any).cancelIdleCallback(idleId);
+          }
+          window.removeEventListener("scroll", triggerEarlyOnScroll);
         }
         if (timerId) clearTimeout(timerId);
-        window.removeEventListener("scroll", triggerEarlyOnScroll);
       };
     }).catch((err) => {
       console.warn("GSAP ScrollSectionAnimator initialization fallback:", err);

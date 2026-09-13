@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  compress: true,
+  poweredByHeader: false,
+  swcMinify: true,
   typescript: {
     // Standalone npx tsc --noEmit is used for full project typechecking
     ignoreBuildErrors: true,
