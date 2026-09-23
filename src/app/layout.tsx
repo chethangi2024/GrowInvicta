@@ -13,12 +13,9 @@ const GlobalEarthBackground = dynamic(
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-poppins",
-  display: "optional",
-  preload: true,
-  fallback: ["system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-  adjustFontFallback: true,
+  display: "swap",
 });
 
 export const metadata: Metadata = {
